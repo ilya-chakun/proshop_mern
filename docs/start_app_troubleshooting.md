@@ -61,6 +61,7 @@ None needed — the project started successfully on first attempt.
 | Database seeded successfully       | ✅ PASS |
 | Backend API returns product data   | ✅ PASS |
 | Frontend loads at localhost:3000   | ✅ PASS |
+| Manual order with PayPal payment   | ✅ PASS |
 | No secrets in committed files      | ✅ PASS |
 
 **Overall: PASS**

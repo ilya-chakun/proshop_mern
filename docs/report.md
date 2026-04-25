@@ -51,6 +51,7 @@ I ran the project locally using Docker MongoDB and `npm run dev`.
 | Backend API | `curl http://localhost:5001/api/products` | ✅ 200 — returns JSON product data |
 | Frontend | `curl -I http://localhost:3000` | ✅ 200 — React app loads |
 | Database seeded | `npm run data:import` | ✅ "Data Imported!" |
+| Manual order with payment | Place order → PayPal sandbox checkout | ✅ Order placed and paid successfully |
 
 ### Documentation updated
 

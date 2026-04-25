@@ -79,6 +79,7 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:3000
 | Database seeded | ✅ |
 | Backend API responds (port 5001) | ✅ |
 | Frontend loads (port 3000) | ✅ |
+| Manual order with PayPal payment | ✅ |
 | `.env` not committed | ✅ |
 | `.env.example` has safe placeholders only | ✅ |
 | README contains only verified facts | ✅ |
