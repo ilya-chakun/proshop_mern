@@ -26,6 +26,72 @@ This project is no longer supported. The new project/course has been released. T
 ## Note on Issues
 Please do not post issues here that are related to your own code when taking the course. Add those in the Udemy Q/A. If you clone THIS repo and there are issues, then you can submit
 
+## Local Development Quick Start
+
+### Prerequisites
+
+- **Node.js** (v14.6+ required; v17+ works with the OpenSSL workaround already applied)
+- **Docker** (for MongoDB)
+- **npm**
+
+### 1. Start MongoDB
+
+```bash
+# First time — create the container:
+docker run -d -p 27017:27017 --name mongo mongo:7
+
+# Subsequent times — just start it:
+docker start mongo
+```
+
+### 2. Configure Environment
+
+Copy the example env file and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set your PayPal sandbox Client ID. The other defaults work as-is.
+
+### 3. Install Dependencies
+
+```bash
+npm install
+cd frontend && npm install && cd ..
+```
+
+### 4. Seed the Database
+
+```bash
+npm run data:import
+```
+
+### 5. Start the App
+
+```bash
+npm run dev
+```
+
+- **Frontend:** http://localhost:3000
+- **Backend API:** http://localhost:5001
+
+### Sample User Logins
+
+| Email | Password | Role |
+|-------|----------|------|
+| admin@example.com | 123456 | Admin |
+| john@example.com | 123456 | Customer |
+| jane@example.com | 123456 | Customer |
+
+### Troubleshooting
+
+- **Port 5000 conflict on macOS:** Port 5000 is used by AirPlay Receiver on macOS 12+. The backend is configured to use port 5001 instead. If you disable AirPlay Receiver, you can change `PORT` back to `5000` in `.env` and update `"proxy"` in `frontend/package.json`.
+- **Port conflicts from leftover processes:** `pkill -f "nodemon backend"; lsof -ti :5001 :3000 | xargs kill -9`
+- **Detailed troubleshooting log:** See [docs/lessons/start_app_troubleshooting.md](docs/lessons/start_app_troubleshooting.md)
+
+---
+
 ## Usage
 
 ### ES Modules in Node
@@ -34,72 +100,46 @@ We use ECMAScript Modules in the backend in this project. Be sure to have at lea
 
 Also, when importing a file (not a package), be sure to add .js at the end or you will get a "module not found" error
 
-You can also install and setup Babel if you would like
-
 ### Env Variables
 
-Create a .env file in then root and add the following
+Create a `.env` file in the root (see `.env.example` for the template):
 
 ```
-NODE_ENV = development
-PORT = 5000
-MONGO_URI = your mongodb uri
-JWT_SECRET = 'abc123'
-PAYPAL_CLIENT_ID = your paypal client id
-```
-
-### Install Dependencies (frontend & backend)
-
-```
-npm install
-cd frontend
-npm install
+NODE_ENV=development
+PORT=5001
+MONGO_URI=mongodb://localhost:27017/proshop
+JWT_SECRET=your_secret
+PAYPAL_CLIENT_ID=your_paypal_sandbox_client_id
 ```
 
 ### Run
 
-```
-# Run frontend (:3000) & backend (:5000)
+```bash
+# Run frontend (:3000) & backend (:5001)
 npm run dev
 
 # Run backend only
 npm run server
 ```
 
+### Seed Database
+
+```bash
+# Import sample data
+npm run data:import
+
+# Destroy all data
+npm run data:destroy
+```
+
 ## Build & Deploy
 
-```
-# Create frontend prod build
+```bash
 cd frontend
 npm run build
 ```
 
 There is a Heroku postbuild script, so if you push to Heroku, no need to build manually for deployment to Heroku
-
-### Seed Database
-
-You can use the following commands to seed the database with some sample users and products as well as destroy all data
-
-```
-# Import data
-npm run data:import
-
-# Destroy data
-npm run data:destroy
-```
-
-```
-Sample User Logins
-
-admin@example.com (Admin)
-123456
-
-john@example.com (Customer)
-123456
-
-jane@example.com (Customer)
-123456
-```
 
 
 ## License
