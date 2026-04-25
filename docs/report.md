@@ -27,3 +27,6 @@
   architecture changes.
 - **Documentation structure** — establishing `docs/report.md` as the single
   homework report and `docs/lessons/` for investigation logs.
+- Added `docs/coding-standards.md` and linked it from both agent rules files
+  to guide AI assistants toward strongly typed JavaScript practices without
+  converting the legacy project to TypeScript.

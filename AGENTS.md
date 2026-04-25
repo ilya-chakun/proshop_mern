@@ -121,7 +121,15 @@ that flag may need to be added, but do not apply it blindly.
 - **Do not delete existing user work** in docs, lessons, or configuration.
 - **Preserve compatibility** with the legacy project unless a change is explicitly justified.
 
-## 10. Human-Written Rules (Not Inferable from Code)
+## 10. JavaScript Coding Standards
+
+- Use **JSDoc** for non-trivial functions, middleware, and shared data shapes.
+- Prefer **explicit validation** and clear data contracts over implicit coercion.
+- Do **not** convert the project to TypeScript unless explicitly requested.
+- Do **not** introduce large rewrites or dependency upgrades.
+- Full standards: [`docs/coding-standards.md`](docs/coding-standards.md).
+
+## 11. Human-Written Rules (Not Inferable from Code)
 
 1. This project is a **public homework fork** — commits must be clean, well-described, and reviewable by other people.
 2. Keep documentation **beginner-friendly** so another developer can set up and run the project within ~30 minutes.
