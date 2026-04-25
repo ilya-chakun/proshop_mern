@@ -53,17 +53,25 @@ const reducer = combineReducers({
   orderList: orderListReducer,
 })
 
-const cartItemsFromStorage = localStorage.getItem('cartItems')
-  ? JSON.parse(localStorage.getItem('cartItems'))
-  : []
+const getStoredValue = (key, fallbackValue) => {
+  const storedValue = localStorage.getItem(key)
 
-const userInfoFromStorage = localStorage.getItem('userInfo')
-  ? JSON.parse(localStorage.getItem('userInfo'))
-  : null
+  if (storedValue === null) {
+    return fallbackValue
+  }
 
-const shippingAddressFromStorage = localStorage.getItem('shippingAddress')
-  ? JSON.parse(localStorage.getItem('shippingAddress'))
-  : {}
+  try {
+    return JSON.parse(storedValue)
+  } catch (error) {
+    localStorage.removeItem(key)
+
+    return fallbackValue
+  }
+}
+
+const cartItemsFromStorage = getStoredValue('cartItems', [])
+const userInfoFromStorage = getStoredValue('userInfo', null)
+const shippingAddressFromStorage = getStoredValue('shippingAddress', {})
 
 const initialState = {
   cart: {
