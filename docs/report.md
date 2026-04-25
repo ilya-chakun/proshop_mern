@@ -101,3 +101,27 @@ I ran the project locally using Docker MongoDB and `npm run dev`.
 - The findings work was limited to Block 3 only.
 - Fixes were kept minimal and stacked on top of the assessment branch.
 - No dependency upgrades, large rewrites, secrets, or `.env` changes were included.
+
+---
+
+## Block 3 — Findings and fixes integration
+
+- **Final integration branch:** `integration/block-3-findings-fixes`
+- **Assessment branch:** `audit/findings-block-3`
+- **Fix branches merged:**
+  - `fix/finding-1-upload-auth`
+  - `fix/finding-2-safe-localstorage`
+  - `fix/finding-3-openssl-build`
+  - `fix/finding-4-restore-payment-method`
+- **Findings documented:** 4
+- **Findings fixed:** 4
+- **Fixed finding numbers:** 1, 2, 3, 4
+- **Local verification commands run:**
+  - `npm run data:import`
+  - `npm run dev`
+  - `curl -i http://localhost:5001/api/products`
+  - `curl -I http://localhost:3000`
+  - `CI=true npm test --prefix frontend -- --watchAll=false --passWithNoTests`
+  - `npm run build --prefix frontend`
+- **Final PR URL:** to be added after PR creation
+- **Safety:** `.env` was not committed, and only safe placeholders were kept in docs and `.env.example`.
