@@ -35,6 +35,15 @@ It is maintained as a public homework fork — keep changes minimal and reviewab
 - Investigation/debugging logs go in `docs/lessons/`.
 - Keep docs beginner-friendly (~30 min setup for a new developer).
 
+## JavaScript Coding Standards
+
+- Suggest **JSDoc** annotations for non-trivial functions and data shapes.
+- Prefer explicit type checks (`=== undefined`) over implicit coercion.
+- Suggest runtime validation for request bodies, params, and env vars.
+- Use named constants instead of magic strings or numbers.
+- Do **not** suggest converting the project to TypeScript.
+- Full standards: [`docs/coding-standards.md`](docs/coding-standards.md).
+
 ## What Copilot Should Avoid
 
 - Do not suggest large dependency upgrades or architecture changes.
