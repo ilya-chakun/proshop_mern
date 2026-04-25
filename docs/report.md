@@ -125,3 +125,28 @@ I ran the project locally using Docker MongoDB and `npm run dev`.
   - `npm run build --prefix frontend`
 - **Final PR URL:** to be added after PR creation
 - **Safety:** `.env` was not committed, and only safe placeholders were kept in docs and `.env.example`.
+
+---
+
+## Nice-to-have documentation
+
+- **Architecture document created:** `docs/architecture.md`
+- **ADR folder created:** `docs/adr/`
+- **ADRs added:** 3
+- **Current docs PR:** https://github.com/ilya-chakun/proshop_mern/pull/12
+
+### Deliverables
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Mermaid architecture diagram | ✅ yes | Added to `docs/architecture.md` based on static code inspection of the current codebase |
+| ADR 0001 | ✅ yes | Single Express server for API plus production static hosting |
+| ADR 0002 | ✅ yes | Redux plus thunk with `localStorage` persistence for shared client state |
+| ADR 0003 | ✅ yes | JWT bearer auth with `protect` and `admin` middleware |
+
+### Scope and safety notes
+
+- The architecture diagram and ADRs were inferred from inspected project files, including backend routes, controllers, models, middleware, frontend routing, Redux store setup, and checkout/payment screens.
+- The work was documentation-only; no application source code or dependencies were changed.
+- Only safe placeholder configuration values are referenced; `.env` was not committed.
+- GitHub Mermaid rendering was **not** verified on github.com after pushing, so that confirmation is not claimed here.
