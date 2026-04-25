@@ -30,3 +30,40 @@
 - Added `docs/coding-standards.md` and linked it from both agent rules files
   to guide AI assistants toward strongly typed JavaScript practices without
   converting the legacy project to TypeScript.
+
+---
+
+## Local startup and README
+
+I ran the project locally using Docker MongoDB and `npm run dev`.
+
+### Setup details
+
+- **MongoDB:** Docker container `mongo` (image `mongo:7`) on `localhost:27017`
+- **Backend:** Express server on port 5001 (port 5000 conflicts with macOS AirPlay)
+- **Frontend:** React dev server on port 3000 (proxying API requests to backend)
+- **Database seed:** `npm run data:import` — imported 3 users and 6 products
+
+### Verification
+
+| Check | URL / Command | Result |
+|-------|---------------|--------|
+| Backend API | `curl http://localhost:5001/api/products` | ✅ 200 — returns JSON product data |
+| Frontend | `curl -I http://localhost:3000` | ✅ 200 — React app loads |
+| Database seeded | `npm run data:import` | ✅ "Data Imported!" |
+| Manual order with payment | Place order → PayPal sandbox checkout | ✅ Order placed and paid successfully |
+
+### Documentation updated
+
+| Item | Status |
+|------|--------|
+| README.md updated with full setup guide | ✅ yes |
+| `.env.example` updated with safe placeholders | ✅ yes |
+| `docs/start_app_troubleshooting.md` created | ✅ yes |
+| `docs/lessons/2026-04-25-local-startup-readme.md` created | ✅ yes |
+
+### Startup caveats
+
+- **Port 5000 conflict:** macOS 12+ uses port 5000 for AirPlay Receiver. The project is configured to use port 5001 instead.
+- **jsonwebtoken upgrade:** Previously upgraded from 8.5.1 → 9.0.3 to fix Node.js 25 compatibility (SlowBuffer removal). Done in prior commit.
+- **OpenSSL legacy provider:** Required for `react-scripts@3.4.3` on Node 17+. Already configured in `frontend/package.json`.

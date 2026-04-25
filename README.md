@@ -1,167 +1,222 @@
-# ProShop eCommerce Platform
+# ProShop MERN eCommerce Platform
 
-> eCommerce platform built with the MERN stack & Redux.
-
-### THIS PROJECT IS DEPRECATED
-This project is no longer supported. The new project/course has been released. The code has been cleaned up and now uses Redux Toolkit. You can find the new version [HERE](https://github.com/bradtraversy/proshop-v2)
+An eCommerce platform built with the MERN stack (MongoDB, Express, React, Node.js) and Redux for state management. Users can browse products, add reviews, and complete purchases via PayPal. Admin users can manage products, users, and orders. Originally created by [Brad Traversy](https://github.com/bradtraversy/proshop_mern); this fork is maintained as a homework project for AI-Driven Development.
 
 ![screenshot](https://github.com/bradtraversy/proshop_mern/blob/master/uploads/Screen%20Shot%202020-09-29%20at%205.50.52%20PM.png)
 
 ## Features
 
-- Full featured shopping cart
+- Full-featured shopping cart
 - Product reviews and ratings
 - Top products carousel
-- Product pagination
-- Product search feature
-- User profile with orders
-- Admin product management
-- Admin user management
-- Admin Order details page
-- Mark orders as delivered option
-- Checkout process (shipping, payment method, etc)
+- Product pagination and search
+- User profiles with order history
+- Admin product, user, and order management
+- Checkout process (shipping, payment method, place order)
 - PayPal / credit card integration
-- Database seeder (products & users)
+- Database seeder (sample products and users)
 
-## Note on Issues
-Please do not post issues here that are related to your own code when taking the course. Add those in the Udemy Q/A. If you clone THIS repo and there are issues, then you can submit
+## Tech Stack
 
-## Local Development Quick Start
+| Layer     | Technology                                                        |
+|-----------|-------------------------------------------------------------------|
+| Backend   | Node.js, Express 4.17, Mongoose 5.10, ES Modules (`"type":"module"`) |
+| Frontend  | React 16.13, Redux 4, React-Bootstrap 1.3, React Router 5        |
+| Database  | MongoDB (local via Docker or Atlas)                               |
+| Auth      | JWT (`jsonwebtoken` 9.x) + bcryptjs                              |
+| Payments  | PayPal (`react-paypal-button-v2`)                                 |
+| Uploads   | Multer (stored in `uploads/`)                                     |
+| Dev tools | Nodemon, Concurrently                                            |
 
-### Prerequisites
+## Repository Structure
 
-- **Node.js** (v14.6+ required; v17+ works with the OpenSSL workaround already applied)
-- **Docker** (for MongoDB)
-- **npm**
-
-### 1. Start MongoDB
-
-```bash
-# First time — create the container:
-docker run -d -p 27017:27017 --name mongo mongo:7
-
-# Subsequent times — just start it:
-docker start mongo
+```
+proshop_mern/
+├── backend/
+│   ├── config/         # Database connection
+│   ├── controllers/    # Route handlers
+│   ├── data/           # Seed data (users, products)
+│   ├── middleware/     # Auth & error-handling middleware
+│   ├── models/         # Mongoose models (User, Product, Order)
+│   ├── routes/         # Express routers
+│   ├── seeder.js       # Database import/destroy script
+│   ├── server.js       # Express entry point
+│   └── utils/          # JWT helper
+├── frontend/
+│   └── src/
+│       ├── actions/    # Redux action creators
+│       ├── components/ # Reusable React components
+│       ├── constants/  # Redux action type constants
+│       ├── reducers/   # Redux reducers
+│       ├── screens/    # Page-level components
+│       └── store.js    # Redux store configuration
+├── uploads/            # User-uploaded product images
+├── docs/               # Homework reports and investigation logs
+├── .env.example        # Safe placeholder environment variables
+├── package.json        # Backend dependencies & dev scripts
+└── README.md           # This file
 ```
 
-### 2. Configure Environment
+## Prerequisites
 
-Copy the example env file and fill in your values:
+- **Node.js** v14.6+ (v17+ works with the OpenSSL workaround already applied in `frontend/package.json`)
+- **npm** (comes with Node.js)
+- **Docker** (for running MongoDB locally)
+- **Git**
+- **PayPal sandbox account** (optional — only needed to test the checkout/payment flow)
+
+## Environment Variables
+
+The backend reads these variables via `dotenv` from a `.env` file in the project root:
+
+| Variable         | Purpose                                          | Example value                             |
+|------------------|--------------------------------------------------|-------------------------------------------|
+| `NODE_ENV`       | `development` or `production` mode               | `development`                             |
+| `PORT`           | Backend server port (defaults to 5000 in code)   | `5001`                                    |
+| `MONGO_URI`      | MongoDB connection string                        | `mongodb://localhost:27017/proshop`        |
+| `JWT_SECRET`     | Secret key for signing JSON Web Tokens           | `change_me`                               |
+| `PAYPAL_CLIENT_ID` | PayPal sandbox client ID for payment integration | `your_paypal_sandbox_client_id`           |
+
+**Setup:** Copy the example file and edit it:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` and set your PayPal sandbox Client ID. The other defaults work as-is.
+> **`.env` is local-only and must never be committed.** It is listed in `.gitignore`.
 
-### 3. Install Dependencies
+## MongoDB Setup
+
+Use Docker to run MongoDB locally:
 
 ```bash
+# First time — create and start the container:
+docker run -d -p 27017:27017 --name mongo mongo:7
+
+# Subsequent times — start existing container:
+docker start mongo
+```
+
+The default connection URI is `mongodb://localhost:27017/proshop` (no authentication for local dev).
+
+## Installation
+
+```bash
+# Install backend dependencies
 npm install
+
+# Install frontend dependencies
 cd frontend && npm install && cd ..
 ```
 
-### 4. Seed the Database
+## Seed Database
+
+Import sample data (3 users, 6 products):
 
 ```bash
 npm run data:import
 ```
 
-### 5. Start the App
+To destroy all data and start fresh:
 
 ```bash
-npm run dev
-```
-
-- **Frontend:** http://localhost:3000
-- **Backend API:** http://localhost:5001
-
-### Sample User Logins
-
-| Email | Password | Role |
-|-------|----------|------|
-| admin@example.com | 123456 | Admin |
-| john@example.com | 123456 | Customer |
-| jane@example.com | 123456 | Customer |
-
-### Troubleshooting
-
-- **Port 5000 conflict on macOS:** Port 5000 is used by AirPlay Receiver on macOS 12+. The backend is configured to use port 5001 instead. If you disable AirPlay Receiver, you can change `PORT` back to `5000` in `.env` and update `"proxy"` in `frontend/package.json`.
-- **Port conflicts from leftover processes:** `pkill -f "nodemon backend"; lsof -ti :5001 :3000 | xargs kill -9`
-- **Detailed troubleshooting log:** See [docs/lessons/start_app_troubleshooting.md](docs/lessons/start_app_troubleshooting.md)
-
----
-
-## Usage
-
-### ES Modules in Node
-
-We use ECMAScript Modules in the backend in this project. Be sure to have at least Node v14.6+ or you will need to add the "--experimental-modules" flag.
-
-Also, when importing a file (not a package), be sure to add .js at the end or you will get a "module not found" error
-
-### Env Variables
-
-Create a `.env` file in the root (see `.env.example` for the template):
-
-```
-NODE_ENV=development
-PORT=5001
-MONGO_URI=mongodb://localhost:27017/proshop
-JWT_SECRET=your_secret
-PAYPAL_CLIENT_ID=your_paypal_sandbox_client_id
-```
-
-### Run
-
-```bash
-# Run frontend (:3000) & backend (:5001)
-npm run dev
-
-# Run backend only
-npm run server
-```
-
-### Seed Database
-
-```bash
-# Import sample data
-npm run data:import
-
-# Destroy all data
 npm run data:destroy
 ```
 
-## Build & Deploy
+### Sample User Logins
+
+| Email               | Password | Role     |
+|---------------------|----------|----------|
+| admin@example.com   | 123456   | Admin    |
+| john@example.com    | 123456   | Customer |
+| jane@example.com    | 123456   | Customer |
+
+## Running the App
 
 ```bash
-cd frontend
-npm run build
+npm run dev
 ```
 
-There is a Heroku postbuild script, so if you push to Heroku, no need to build manually for deployment to Heroku
+This starts both backend and frontend concurrently:
 
+- **Frontend:** http://localhost:3000
+- **Backend API:** http://localhost:5001 (or your configured `PORT`)
+
+To verify it works:
+
+```bash
+# Backend should return JSON product data:
+curl http://localhost:5001/api/products
+
+# Frontend should return HTML:
+curl -I http://localhost:3000
+```
+
+## Troubleshooting
+
+### MongoDB connection refused
+
+- Ensure the Docker container is running: `docker ps`
+- Start it if stopped: `docker start mongo`
+- Verify `MONGO_URI` in `.env` matches `mongodb://localhost:27017/proshop`
+
+### Mongo container name already exists
+
+If `docker run` fails with "name already in use":
+
+```bash
+docker start mongo    # start the existing container
+```
+
+### Missing `.env` file
+
+Copy the example and configure:
+
+```bash
+cp .env.example .env
+```
+
+### Port 5000 conflict on macOS
+
+macOS 12+ uses port 5000 for AirPlay Receiver. Set `PORT=5001` in `.env` and ensure `frontend/package.json` has `"proxy": "http://127.0.0.1:5001"`. Alternatively, disable AirPlay Receiver in System Settings → General → AirDrop & Handoff.
+
+### Port conflicts from leftover processes
+
+```bash
+pkill -f "nodemon backend"
+lsof -ti :5001 :3000 | xargs kill -9
+npm run dev
+```
+
+### OpenSSL errors with Node 17+
+
+The `frontend/package.json` start script already includes `NODE_OPTIONS=--openssl-legacy-provider`. If the build script also fails, add the same flag there.
+
+### PayPal sandbox placeholder
+
+The app works without a real PayPal client ID — checkout will fail at the payment step. To test payments, create a PayPal sandbox app at https://developer.paypal.com and set `PAYPAL_CLIENT_ID` in `.env`.
+
+### Seed/import errors
+
+Ensure MongoDB is running and `MONGO_URI` is correct before running `npm run data:import`.
+
+## Useful Scripts
+
+| Command                | Description                                        |
+|------------------------|----------------------------------------------------|
+| `npm run dev`          | Start backend + frontend concurrently              |
+| `npm run server`       | Start backend only (with nodemon)                  |
+| `npm run client`       | Start frontend only                                |
+| `npm start`            | Start backend (production, no nodemon)             |
+| `npm run data:import`  | Seed database with sample data                     |
+| `npm run data:destroy` | Destroy all database data                          |
+| `npm test --prefix frontend` | Run frontend tests (Jest)                    |
+| `npm run build --prefix frontend` | Production build of frontend            |
+
+## Homework Notes
+
+This fork is being prepared for an **AI-Driven Development** homework assignment. Commit history, documentation, and investigation logs in `docs/lessons/` reflect the learning process. See `docs/report.md` for the homework submission report.
 
 ## License
 
-The MIT License
-
-Copyright (c) 2020 Traversy Media https://traversymedia.com
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+The MIT License — Copyright (c) 2020 Traversy Media https://traversymedia.com
