@@ -150,3 +150,19 @@ I ran the project locally using Docker MongoDB and `npm run dev`.
 - The work was documentation-only; no application source code or dependencies were changed.
 - Only safe placeholder configuration values are referenced; `.env` was not committed.
 - GitHub Mermaid rendering was **not** verified on github.com after pushing, so that confirmation is not claimed here.
+
+---
+
+## Nice-to-have: Characterization tests
+
+- **Selected function:** `cartReducer`
+- **Source file:** `frontend/src/reducers/cartReducers.js`
+- **Experiment folder:** `docs/m2-char-tests/`
+- **Files created:**
+  - `docs/m2-char-tests/original.js`
+  - `docs/m2-char-tests/characterization.test.js`
+  - `docs/m2-char-tests/refactored.js`
+  - `docs/m2-char-tests/reflection.md`
+- **Test command used:** `./frontend/node_modules/.bin/jest docs/m2-char-tests/characterization.test.js --runInBand`
+- **Test result:** ✅ pass — 22 characterization tests passed for both the original copy and the refactored copy
+- **Safety note:** the work stayed isolated under `docs/m2-char-tests/`; production application behavior was not changed.
