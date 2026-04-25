@@ -1,0 +1,16 @@
+node_modules
+frontend/node_modules
+.git
+.env
+.env.*
+frontend/build
+build
+coverage
+dist
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+.idea
+.opencode
