@@ -166,3 +166,26 @@ I ran the project locally using Docker MongoDB and `npm run dev`.
 - **Test command used:** `./frontend/node_modules/.bin/jest docs/m2-char-tests/characterization.test.js --runInBand`
 - **Test result:** ✅ pass — 22 characterization tests passed for both the original copy and the refactored copy
 - **Safety note:** the work stayed isolated under `docs/m2-char-tests/`; production application behavior was not changed.
+
+---
+
+## Extra: Docker Compose
+
+- **Docker Compose added:** yes
+- **Services:** `mongo`, `backend`, `frontend`
+- **Seeder service:** included as a one-off Compose step before backend startup
+- **Verification commands used:**
+  - `docker compose config`
+  - `docker compose up --build`
+  - `curl -i http://localhost:5001/api/products`
+  - `curl -I http://localhost:3000`
+  - `docker compose down`
+- **URLs checked:**
+  - `http://localhost:5001/api/products`
+  - `http://localhost:3000`
+- **Limitations:**
+  - The backend still listens on container port `5000`, but Compose publishes it on host port `5001` because this project already documents the macOS AirPlay conflict on host port `5000`.
+  - The frontend Docker image rewrites its internal dev proxy to the Compose `backend` service so the host-side proxy setting remains unchanged for manual local setup.
+  - During verification, the legacy `NODE_OPTIONS=--openssl-legacy-provider` wrapper failed inside the Dockerized frontend, so the frontend image now rewrites its internal start/build scripts for Node 16 while leaving the host-side package file unchanged.
+  - If the standalone `mongo` container from the manual setup is already running, it must be stopped before Compose can claim host port `27017`.
+- **Safety:** `.env` was not committed, only safe placeholder values were added to Docker and documentation files, and no dependency upgrades were made.
