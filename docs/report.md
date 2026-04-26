@@ -15,21 +15,11 @@
 
 ### What was manually added beyond generic auto-generated rules
 
-- **Safe local environment guidance** — Docker MongoDB setup and placeholder-only
-  `.env.example` rules to prevent accidental secret commits.
-- **AI-agent workflow rules** — requiring project inspection before edits,
-  avoiding large rewrites or dependency upgrades in this legacy codebase.
-- **Human-written conventions** — that this is a public homework fork with
-  clean commit expectations, beginner-friendly docs, and `docs/lessons/`
-  as a knowledge-transfer log for future AI-agent sessions.
-- **Copilot-specific behavioral constraints** — telling Copilot to inspect
-  nearby files first, never suggest committing secrets, and avoid
-  architecture changes.
-- **Documentation structure** — establishing `docs/report.md` as the single
-  homework report and `docs/lessons/` for investigation logs.
-- Added `docs/coding-standards.md` and linked it from both agent rules files
-  to guide AI assistants toward strongly typed JavaScript practices without
-  converting the legacy project to TypeScript.
+- **Safe local environment guidance** — Docker MongoDB setup plus placeholder-only `.env.example` rules to prevent accidental secret commits.
+- **AI workflow constraints** — inspect the codebase before editing, prefer minimal reviewable changes, and avoid broad rewrites or dependency upgrades in this legacy project.
+- **Human-written repo conventions** — this is a public homework fork, docs must stay beginner-friendly, and `docs/lessons/` acts as a knowledge-transfer log for future sessions.
+- **Copilot-specific behavior** — inspect nearby files first, follow existing patterns, and never suggest committing `.env` or secrets.
+- **Shared JavaScript standards** — `docs/coding-standards.md` was linked from both rules files to encourage JSDoc, explicit validation, and safer plain-JS practices without converting the repo to TypeScript.
 
 ---
 
@@ -51,7 +41,7 @@ I ran the project locally using Docker MongoDB and `npm run dev`.
 | Backend API | `curl http://localhost:5001/api/products` | ✅ 200 — returns JSON product data |
 | Frontend | `curl -I http://localhost:3000` | ✅ 200 — React app loads |
 | Database seeded | `npm run data:import` | ✅ "Data Imported!" |
-| Manual order with payment | Place order → PayPal sandbox checkout | ✅ Order placed and paid successfully |
+| Manual order with payment | Place order → PayPal sandbox checkout | ✅ Historical manual verification recorded on 2026-04-25; not re-run during this final CLI audit |
 
 ### Documentation updated
 
@@ -95,6 +85,7 @@ I ran the project locally using Docker MongoDB and `npm run dev`.
 - `CI=true npm test --prefix frontend -- --watchAll=false --passWithNoTests` passes for the frontend-safe fixes.
 - `npm run build --prefix frontend` initially failed with `ERR_OSSL_EVP_UNSUPPORTED`, which became Finding #3.
 - `npm run build --prefix frontend` passes after the build-script fix, with existing React Hook warnings still reported by the legacy codebase.
+- Final audit follow-up: `frontend/src/store.js` now uses the guarded persisted-state parser for `paymentMethod` as well as `cartItems`, `userInfo`, and `shippingAddress`.
 
 ### Scope note
 
@@ -123,7 +114,7 @@ I ran the project locally using Docker MongoDB and `npm run dev`.
   - `curl -I http://localhost:3000`
   - `CI=true npm test --prefix frontend -- --watchAll=false --passWithNoTests`
   - `npm run build --prefix frontend`
-- **Final PR URL:** to be added after PR creation
+- **Final PR URL:** https://github.com/ilya-chakun/proshop_mern/pull/11
 - **Safety:** `.env` was not committed, and only safe placeholders were kept in docs and `.env.example`.
 
 ---

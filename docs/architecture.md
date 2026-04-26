@@ -5,34 +5,38 @@ This project is a legacy MERN e-commerce application with a React frontend, an E
 ```mermaid
 flowchart LR
     user["User browser"]
-    frontend["React frontend"]
-    router["React Router screens"]
-    state["Redux store and thunk"]
-    api["Express API server"]
-    routes["Routes and auth middleware"]
-    controllers["Controllers with asyncHandler"]
-    models["Mongoose models"]
+    index["frontend/src/index.js"]
+    app["frontend/src/App.js"]
+    screens["frontend/src/screens/*"]
+    store["frontend/src/store.js"]
+    server["backend/server.js"]
+    routes["backend/routes/*.js"]
+    auth["backend/middleware/authMiddleware.js"]
+    controllers["backend/controllers/*.js"]
+    models["backend/models/*.js"]
+    db["backend/config/db.js"]
     mongo["MongoDB"]
-    paypal["PayPal browser SDK"]
-    config["Environment config from .env"]
-    uploads["Uploads directory"]
+    paypalConfig["GET /api/config/paypal"]
+    paypalSdk["paypal.com browser SDK"]
+    uploads["uploads/"]
 
-    user --> frontend
-    frontend --> router
-    router --> state
-    frontend --> state
-    frontend --> api
-    state --> api
-    api --> routes
+    user --> index
+    index --> app
+    app --> screens
+    app --> store
+    screens --> store
+    store --> server
+    server --> routes
+    routes --> auth
     routes --> controllers
     controllers --> models
-    models --> mongo
-    api -. reads .-> config
-    routes -. uses JWT secret .-> config
-    frontend -. requests client id .-> api
-    frontend --> paypal
-    api --> uploads
-    api -. serves frontend build in production .-> frontend
+    models --> db
+    db --> mongo
+    screens -. fetch client id .-> paypalConfig
+    paypalConfig --> server
+    screens --> paypalSdk
+    routes --> uploads
+    server -. serves frontend build in production .-> index
 ```
 
 ## Runtime flow
