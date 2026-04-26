@@ -40,7 +40,6 @@ Add an optional Docker Compose workflow for local development so MongoDB, backen
 - `git checkout -b chore/docker-compose-local-dev`
 - `docker compose config`
 - `docker compose up --build`
-- `docker compose exec -T backend npm run data:import`
 - `curl -i http://localhost:5001/api/products`
 - `curl -I http://localhost:3000`
 - `docker compose down`
@@ -54,7 +53,7 @@ Add an optional Docker Compose workflow for local development so MongoDB, backen
 
 - Compose configuration validated successfully with `docker compose config`.
 - MongoDB, backend, and frontend started through Docker Compose.
-- Sample data import was run from the backend container.
+- Sample data import was run automatically by a one-off Compose `seeder` service before backend startup.
 - Backend API responded at `http://localhost:5001/api/products`.
 - Frontend responded at `http://localhost:3000`.
 
@@ -63,6 +62,8 @@ Add an optional Docker Compose workflow for local development so MongoDB, backen
 - The Compose workflow is optional and separate from the existing manual `.env` plus `npm run dev` setup.
 - The backend still listens on container port `5000`, but Compose publishes it on host port `5001` because macOS AirPlay reserves host port `5000` on this machine.
 - The frontend Docker image rewrites its internal dev proxy to `http://backend:5000` so the host-side proxy setting remains unchanged.
+- The Compose stack now includes a one-off `seeder` service so the product list is not empty on a fresh MongoDB volume.
+- The backend Compose service now reads `JWT_SECRET` and `PAYPAL_CLIENT_ID` from the local root `.env` via Compose variable substitution; otherwise it falls back to safe placeholders.
 - During verification, the legacy `NODE_OPTIONS=--openssl-legacy-provider` wrapper failed inside the frontend container, so the image now rewrites its internal start/build scripts for Docker without changing the checked-in host workflow.
 - The standalone `mongo` container used by the manual setup must be stopped before Compose can bind host port `27017`.
 - Existing local `npm run dev` processes on ports `3000` and `5001` also had to be stopped before the Compose verification run.

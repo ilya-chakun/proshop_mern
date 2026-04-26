@@ -167,6 +167,8 @@ Compose starts three services:
 - **Backend API:** http://localhost:5001
 - **MongoDB:** localhost:27017
 
+On first start, Compose also runs a one-off `seeder` container so sample products exist before the backend comes up.
+
 To stop the stack:
 
 ```bash
@@ -188,6 +190,8 @@ docker compose exec -T backend npm run data:import
 ### Notes for the Compose workflow
 
 - The Compose backend uses safe local-only environment values inside `docker-compose.yml`.
+- Compose includes a one-shot `seeder` service that imports the sample users and products into the Compose MongoDB instance.
+- The Compose backend reads `JWT_SECRET` and `PAYPAL_CLIENT_ID` from your local root `.env` when available, while keeping safe placeholder fallbacks in the Compose file.
 - The frontend image rewrites its internal development proxy to `http://backend:5000` during image build so the existing host-side `frontend/package.json` proxy (`http://127.0.0.1:5001`) stays unchanged for manual local setup.
 - The frontend image also removes the host-only `NODE_OPTIONS=--openssl-legacy-provider` wrapper from its internal start/build scripts because Node 16 inside Docker rejected that flag in `NODE_OPTIONS` during verification.
 - The backend still listens on container port `5000`, but Compose publishes it on host port `5001` to avoid the existing macOS AirPlay conflict on host port `5000`.
@@ -199,6 +203,7 @@ docker compose exec -T backend npm run data:import
 - **Existing manual MongoDB container is already running:** stop the standalone `mongo` container from the manual setup with `docker stop mongo` before starting Compose, then restart it later with `docker start mongo` if you switch back.
 - **Mongo container or volume issues:** reset the stack with `docker compose down -v` and start again.
 - **Frontend cannot reach backend:** rebuild the frontend image with `docker compose up --build` so the container-local proxy points at the `backend` service.
+- **PayPal button keeps spinning or PayPal SDK returns 400:** make sure your local root `.env` contains a real PayPal sandbox client ID. Compose now forwards that local value into the backend container; the placeholder `your_paypal_sandbox_client_id` will not work with the PayPal SDK.
 - **Frontend restarts with `--openssl-legacy-provider is not allowed in NODE_OPTIONS`:** rebuild the frontend image so the Docker-specific script rewrite is applied; the host-side `frontend/package.json` file remains unchanged for manual local setup.
 
 ## Troubleshooting

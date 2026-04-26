@@ -173,10 +173,10 @@ I ran the project locally using Docker MongoDB and `npm run dev`.
 
 - **Docker Compose added:** yes
 - **Services:** `mongo`, `backend`, `frontend`
+- **Seeder service:** included as a one-off Compose step before backend startup
 - **Verification commands used:**
   - `docker compose config`
   - `docker compose up --build`
-  - `docker compose exec -T backend npm run data:import`
   - `curl -i http://localhost:5001/api/products`
   - `curl -I http://localhost:3000`
   - `docker compose down`
