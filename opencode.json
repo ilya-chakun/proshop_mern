@@ -1,0 +1,21 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "feature-flags": {
+      "type": "local",
+      "command": [
+        "/Users/ilyachakun/Desktop/projects/ai-course/m3-homework/.venv/bin/python",
+        "/Users/ilyachakun/Desktop/projects/ai-course/proshop_mern/ai/mcp-feature-flags/server.py"
+      ],
+      "enabled": true
+    },
+    "search-docs": {
+      "type": "local",
+      "command": [
+        "/Users/ilyachakun/Desktop/projects/ai-course/m3-homework/.venv/bin/python",
+        "/Users/ilyachakun/Desktop/projects/ai-course/proshop_mern/ai/mcp-search-docs/server.py"
+      ],
+      "enabled": true
+    }
+  }
+}
