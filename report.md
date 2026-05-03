@@ -266,7 +266,145 @@ I ran the project locally using Docker MongoDB and `npm run dev`.
    - Dependencies blocking enablement: none
 
 ### Search-docs MCP — test queries log
-<FILL: paste the agent transcript from docs/m3/MANUAL_STEPS_v2.md prompt 2 here>
+> Note: `search-docs` MCP returns `source_file / type / score / content_snippet`, but not chunk `id`.
+> For this log I preserved the exact MCP query results and then matched them to the same Qdrant hits for the
+> same query to recover `id` for each returned chunk.
+
+#### Query 1 (initial)
+
+`search_project_docs({"query":"Какая БД используется и почему?","top_k":5})`
+
+Top-K returned:
+
+| Rank | id | score | source_file | Fragment |
+|---|---|---:|---|---|
+| 1 | `a53fe208-7895-4dfe-a186-875d8daf2c73` | 0.5577 | `runbooks/db-seed-and-reset.md` | `# Database Seed and Reset Runbook ... Manage database state through seeding sample data...` |
+| 2 | `a7ada8fb-5504-410f-8dd7-c36b3fbc9d19` | 0.5505 | `adrs/adr-001-mongodb-vs-postgres.md` | `Use **MongoDB** via the **Mongoose** ODM as the sole database for the application...` |
+| 3 | `78394dd3-a2e8-4728-85b9-3ce960a9d726` | 0.5428 | `adrs/adr-003-jwt-vs-session.md` | `Express-Session with MongoDB Session Store...` |
+| 4 | `5c42ea31-5949-4173-bad6-31a367aad2ba` | 0.5339 | `adrs/adr-001-mongodb-vs-postgres.md` | `PostgreSQL was the team's existing experience base... Reason not chosen: The team wanted to build MongoDB experience...` |
+| 5 | `82d913e0-f244-4f2a-a80b-c39118942ee9` | 0.5211 | `best-practices.md` | `Mongoose Schema Design Best Practices...` |
+
+How I used it:
+
+- Hit #2 gave the direct answer: the project uses **MongoDB via Mongoose**.
+- Hit #4 added the decision rationale and trade-off against PostgreSQL.
+- Hits #1, #3, #5 were related background, but weaker for the exact “why” question.
+- Because the initial wording still pulled in some generic DB material, I refined the query once.
+
+#### Query 1 (refined for the final answer)
+
+`search_project_docs({"query":"Почему выбрали MongoDB вместо PostgreSQL?","top_k":5})`
+
+Top-K returned:
+
+| Rank | id | score | source_file | Fragment |
+|---|---|---:|---|---|
+| 1 | `5c42ea31-5949-4173-bad6-31a367aad2ba` | 0.6841 | `adrs/adr-001-mongodb-vs-postgres.md` | `PostgreSQL ... Full ACID compliance ... Reason not chosen: The team wanted to build MongoDB experience...` |
+| 2 | `71ba0881-3e4c-4fa8-a24e-f8af1e9e5852` | 0.6680 | `dev-history.md` | `Decision 1: MongoDB over PostgreSQL ... variable attributes ... MongoDB's flexible document model handles this naturally.` |
+| 3 | `7f09c9ab-3274-4ca0-8699-1801227a6692` | 0.6483 | `adrs/adr-001-mongodb-vs-postgres.md` | `The product entity was anticipated to have variable attributes ... This variability was the central argument for a document store.` |
+| 4 | `c25e55aa-915d-40a9-8624-1e3758f52a14` | 0.5948 | `adrs/adr-001-mongodb-vs-postgres.md` | `No ACID transactions by default...` |
+| 5 | `a7e58edf-dd37-482b-8ed7-03f4a91d2723` | 0.5895 | `dev-history.md` | `The initial goal was to prove out a full MERN stack (MongoDB...)` |
+
+Formulated answer:
+
+- **БД: MongoDB, через Mongoose.**
+- **Почему:** команда ожидала переменные атрибуты у каталога товаров и поэтому выбрала document model; плюс это был осознанный learning goal по MERN/MongoDB.
+- **Важная оговорка из документации:** задним числом авторы признают, что PostgreSQL + JSONB тоже подошёл бы, а его ACID-гарантии даже помогли бы избежать части проблем с order/inventory consistency.
+
+#### Query 2 (initial)
+
+`search_project_docs({"query":"Какие фичи зависят от stripe_alternative?","top_k":5})`
+
+Top-K returned:
+
+| Rank | id | score | source_file | Fragment |
+|---|---|---:|---|---|
+| 1 | `471fd351-3cf8-4e9f-9db1-8e19c0b77742` | 0.6760 | `feature-flags-spec.md` | ``stripe_alternative` — Stripe as Alternative Payment Processor ... **Dependencies:** None.` |
+| 2 | `314d7021-3396-4af5-b657-f8b262b4262e` | 0.6610 | `adrs/adr-004-paypal-vs-stripe.md` | `Stripe is now the team's preferred payment processor for new projects...` |
+| 3 | `1dea206d-99a1-459d-ad47-0895361b311c` | 0.6260 | `features-analysis-ru.md` | `stripe_alternative — Stripe как альтернативная оплата ...` |
+| 4 | `3c7e5f7c-92fc-40f5-8cb7-c7226cc6782f` | 0.5880 | `adrs/adr-004-paypal-vs-stripe.md` | `Migration Path ...` |
+| 5 | `e057bf44-2275-48b7-ba0c-a656c4986131` | 0.5497 | `adrs/adr-005-bootstrap-vs-tailwind.md` | `Alternatives Considered` |
+
+How I used it:
+
+- The initial query mostly returned chunks about `stripe_alternative` itself, not its dependents.
+- That was not enough to answer the question reliably, so I refined the query toward dependencies.
+
+#### Query 2 (refined for the final answer)
+
+`search_project_docs({"query":"Какие фичи зависят от stripe_alternative? apple_pay dependencies","top_k":5})`
+
+Top-K returned:
+
+| Rank | id | score | source_file | Fragment |
+|---|---|---:|---|---|
+| 1 | `471fd351-3cf8-4e9f-9db1-8e19c0b77742` | 0.6986 | `feature-flags-spec.md` | ``stripe_alternative` ... enables the Stripe payment path ... **Dependencies: None.`` |
+| 2 | `314d7021-3396-4af5-b657-f8b262b4262e` | 0.6752 | `adrs/adr-004-paypal-vs-stripe.md` | `Stripe is now the team's preferred payment processor...` |
+| 3 | `3c7e5f7c-92fc-40f5-8cb7-c7226cc6782f` | 0.6640 | `adrs/adr-004-paypal-vs-stripe.md` | `Migration Path ...` |
+| 4 | `1dea206d-99a1-459d-ad47-0895361b311c` | 0.6488 | `features-analysis-ru.md` | `stripe_alternative — Stripe как альтернативная оплата ...` |
+| 5 | `1b3e81df-7201-4ba1-9393-ce40d881195a` | 0.6329 | `feature-flags-spec.md` | ``apple_pay` ... Payment processor: Stripe (requires `stripe_alternative` to be in Testing or Enabled) ... **Dependencies:** `stripe_alternative` must be active.` |
+
+Formulated answer:
+
+- В retrieved docs явно нашлась **одна зависимая фича: `apple_pay`**.
+- Основание: chunk `1b3e81df-7201-4ba1-9393-ce40d881195a` прямо говорит, что `apple_pay` requires `stripe_alternative` to be active.
+- Для самого `stripe_alternative` в spec указано `Dependencies: None`, то есть это базовая фича, а не зависимая.
+- Других фич с явной зависимостью от `stripe_alternative` в top-K и в сопутствующих retrieved chunks не surfaced.
+
+#### Query 3 (initial)
+
+`search_project_docs({"query":"Что случилось во время последнего incident с checkout?","top_k":5})`
+
+Top-K returned:
+
+| Rank | id | score | source_file | Fragment |
+|---|---|---:|---|---|
+| 1 | `8398ee0d-4020-46ef-86c1-a61e2b9aeafa` | 0.6162 | `runbooks/incident-response.md` | `Issue: Payment processing failing for 5% of users ... Root cause identified: expired PayPal creds ...` |
+| 2 | `18fb5ae7-6f86-472d-9619-42c354cca7c6` | 0.6054 | `runbooks/incident-response.md` | `Incident Postmortem: PayPal Payment Processor Outage ... Date: 2024-04-15 ... 10 minutes ... root cause identified: PayPal credentials expired April 15` |
+| 3 | `087b3358-ddb6-4fa8-9451-85d4b2e1c3ff` | 0.5948 | `feature-flags-spec.md` | `express_checkout ...` |
+| 4 | `6c6e86b9-cf61-46ff-9e66-1d36fa2b98ff` | 0.5793 | `incidents/i-001-paypal-double-charge.md` | `First onApprove callback ... Second onApprove fires ... stock decremented again ...` |
+| 5 | `c97384fa-ea36-450f-bf7b-512812246bc9` | 0.5714 | `runbooks/incident-response.md` | `Declare the incident ... Checkout payment processing failing for PayPal users` |
+
+How I used it:
+
+- The initial query surfaced two different checkout-related incidents: the newer **2024 PayPal outage** and the older **2023 sandbox double-callback**.
+- Because the question said **"последний incident"**, I refined the query to emphasize recency and outage context.
+
+#### Query 3 (refined for the final answer)
+
+`search_project_docs({"query":"Последний incident checkout payment outage что случилось?","top_k":5})`
+
+Top-K returned:
+
+| Rank | id | score | source_file | Fragment |
+|---|---|---:|---|---|
+| 1 | `18fb5ae7-6f86-472d-9619-42c354cca7c6` | 0.6435 | `runbooks/incident-response.md` | `Incident Postmortem: PayPal Payment Processor Outage ... Date: 2024-04-15 ... 14:26 Root cause identified: PayPal credentials expired April 15 ... 14:32 all-clear.` |
+| 2 | `8398ee0d-4020-46ef-86c1-a61e2b9aeafa` | 0.6030 | `runbooks/incident-response.md` | `Issue: Payment processing failing for 5% of users. Rollback in progress ... Root cause identified: expired PayPal creds.` |
+| 3 | `6c6e86b9-cf61-46ff-9e66-1d36fa2b98ff` | 0.5824 | `incidents/i-001-paypal-double-charge.md` | `First onApprove callback ... Second onApprove fires ... stock decremented again ...` |
+| 4 | `c97384fa-ea36-450f-bf7b-512812246bc9` | 0.5796 | `runbooks/incident-response.md` | `Checkout payment processing failing for PayPal users` |
+| 5 | `c1230f27-c19d-4647-91c6-ce0b3d2a8afc` | 0.5743 | `incidents/i-002-mongo-connection-pool-exhaustion.md` | `MongoDB Connection Pool Exhaustion ...` |
+
+Formulated answer:
+
+- **Последний checkout incident в документации — PayPal Payment Processor Outage от 2024-04-15.**
+- Что случилось: checkout начал падать с `401 Unauthorized`, пользователи жаловались "Can't checkout", команда быстро нашла причину — **истекли PayPal credentials**.
+- Воздействие: около **10 минут checkout failures**, примерно **150 orders delayed**, без потери выручки; после renewal credentials и redeploy flow восстановили к 14:32 UTC.
+- Старый incident `i-001` про double-callback PayPal тоже surfaced в поиске, но он **не последний по времени**.
+
+#### Final answers used for the task
+
+1. **Какая БД используется и почему?**
+   - Используется **MongoDB** через **Mongoose**.
+   - Причины из документации: ожидались переменные атрибуты товаров, document model казалась естественной; плюс команда хотела набрать опыт именно с MongoDB/MERN.
+   - Hindsight из ADR: PostgreSQL + JSONB тоже подошёл бы, а по consistency для order/inventory мог быть даже лучше.
+
+2. **Какие фичи зависят от `stripe_alternative`?**
+   - Явно задокументированная зависимая фича: **`apple_pay`**.
+
+3. **Что случилось во время последнего incident с checkout?**
+   - Последний задокументированный checkout incident — **PayPal Payment Processor Outage** 2024-04-15.
+   - Причина: **expired PayPal credentials**.
+   - Эффект: около **10 минут** checkout не работал, примерно **150 заказов задержались**, затем credentials обновили и checkout восстановили.
 
 ### End-to-end (both MCPs in one chat) log
 <FILL: paste the agent transcript from docs/m3/MANUAL_STEPS_v2.md prompt 3 here>
