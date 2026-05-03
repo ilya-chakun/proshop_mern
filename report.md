@@ -562,6 +562,7 @@ I used FastMCP + Python for both servers because it was the shortest path from t
 - `ai/mcp-feature-flags/server.py` — 4 tools: `get_feature_info`, `set_feature_state`, `adjust_traffic_rollout`, `list_features`
 - `ai/mcp-search-docs/server.py` — 1 tool: `search_project_docs`
 - `ai/rag/{config,ingest,query,export_chunks}.py` — RAG pipeline
+- `ai/rag/evaluate_optional.py` — optional Part 4 comparison script for dense vs hybrid vs hybrid+r rerank
 - `ai/chunks.jsonl` — all chunks with metadata
 - `ai/rag/test-queries.log` — direct CLI queries (pre-MCP debug, from prior iteration)
 - `backend/features.json` — live runtime feature flags
@@ -569,6 +570,45 @@ I used FastMCP + Python for both servers because it was the shortest path from t
 - `frontend/src/screens/FeaturesListScreen.js` — admin Dashboard page
 - `AGENTS.md` — rules for opencode (search-docs first; feature-flags MCP for state)
 - `opencode.json` — both MCP servers
+
+### Optional Part 4 — Hybrid search + reranker
+
+I extended the original dense-only retrieval with a pragmatic local baseline for optional Part 4:
+
+- **Dense baseline**: existing BGE-M3 vector similarity from Qdrant.
+- **Hybrid stage**: local BM25-style lexical scoring over exported chunk payloads + dense results fused with **RRF**.
+- **Reranker stage**: `BAAI/bge-reranker-v2-m3` applied to the hybrid candidate pool (`top-25 -> top-5`).
+- **Default MCP retrieval mode now**: `hybrid_rerank`.
+
+Verification command:
+
+```bash
+PYTHON=/Users/ilyachakun/Desktop/projects/ai-course/m3-homework/.venv/bin/python
+cd ai
+$PYTHON -m rag.evaluate_optional
+```
+
+Measured comparison on the same three assignment-style queries:
+
+| Mode | MRR | Recall@5 | Notes |
+|---|---:|---:|---|
+| `dense` | 1.00 | 1.00 | Top-1 already matched the expected source family for all three queries. |
+| `hybrid` | 1.00 | 1.00 | No metric lift on this tiny benchmark, but lexical matching made dependency-style retrieval more explainable. |
+| `hybrid_rerank` | 1.00 | 1.00 | Ranking became slightly different on Query 1 (`dev-history.md` moved above the ADR), but the top result still remained relevant and correct. |
+
+Reflection on optional Part 4: on this very small, well-structured corpus the baseline was already strong enough that hybrid retrieval did not improve the headline numbers. Even so, implementing BM25 + RRF + reranking was useful because it turned the search stack into something closer to a production retrieval architecture instead of a single dense similarity call. The biggest practical value here is robustness: lexical evidence helps with exact dependency names, while the reranker gives a second pass when several chunks are semantically close. On a larger or noisier corpus I would expect the hybrid pipeline to matter much more than it does on these three gold-ish checks.
+
+### UI polish (M4-oriented prep)
+
+I also polished the feature flags dashboard so it is closer to the next module's UI expectations without changing the architecture:
+
+- added summary cards for total/enabled/testing/dependency-bearing flags
+- added search by key / display name / dependency
+- added status filtering (`All`, `Enabled`, `Testing`, `Disabled`)
+- added a manual **Refresh** action so runtime MCP changes can be reloaded without a full page refresh
+- improved empty/error states and dependency badge rendering
+
+This stayed intentionally small and reviewable: the page still reads from the same `GET /api/feature-flags` endpoint and does not introduce any new frontend dependencies or state managers.
 
 ---
 
