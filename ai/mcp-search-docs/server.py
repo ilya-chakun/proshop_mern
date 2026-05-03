@@ -40,7 +40,7 @@ def search_project_docs(query: str, top_k: int = 5) -> list[dict]:
     - query: natural language question, any language (RU/EN both work).
     - top_k: 1–10, default 5.
 
-    OUTPUT: list of {source_file, type, score, content_snippet (300 chars)},
+    OUTPUT: list of {source_file, type, score, content_snippet (300 chars), retrieval_mode},
     sorted by relevance descending.
 
     EXAMPLES:
@@ -57,6 +57,7 @@ def search_project_docs(query: str, top_k: int = 5) -> list[dict]:
             "type": result["type"],
             "score": result["score"],
             "content_snippet": result["content"][:300],
+            "retrieval_mode": "hybrid_rerank",
         }
         for result in raw
     ]
