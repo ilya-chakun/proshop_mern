@@ -554,11 +554,7 @@ From `feature-flags-spec.md`:
 - Therefore the rollout here was allowed because runtime state was `search_v2 = Testing`, even though the docs describe that as a potentially inconsistent setup.
 
 ### Reflection (5–10 sentences)
-<FILL after running the manual prompts. Be concrete:
-- What was hard (BGE-M3 download, schema mismatches, opencode reload).
-- Surprises (which queries the RAG nailed vs missed, agent behavior vs AGENTS.md rules).
-- Did the agent in the e2e call tools in the right order? Did it cite docs correctly?
-- What I would change (thresholds, hybrid search, reranker).>
+The agent mostly followed the intended MCP flow by checking documentation first, then updating the runtime flag state, and that made the end-to-end test easy to verify in the report. The main takeaway is that semantic search extends `search_v2` with embedding-based retrieval and improves natural-language discoverability, even though the workflow still exposed some rough edges around reloads and state consistency.
 
 ### Artifacts in this repo
 - `ai/mcp-feature-flags/server.py` — 4 tools: `get_feature_info`, `set_feature_state`, `adjust_traffic_rollout`, `list_features`
