@@ -407,7 +407,151 @@ Formulated answer:
    - Эффект: около **10 минут** checkout не работал, примерно **150 заказов задержались**, затем credentials обновили и checkout восстановили.
 
 ### End-to-end (both MCPs in one chat) log
-<FILL: paste the agent transcript from docs/m3/MANUAL_STEPS_v2.md prompt 3 here>
+
+#### Prompt
+
+> 1. Найди в документации proshop_mern что такое фича `semantic_search` и какие у неё зависимости.
+> 2. Проверь текущее состояние через feature-flags MCP.
+> 3. Если она в статусе Disabled и все зависимости не в Disabled — переведи в Testing, установи трафик 25%.
+> 4. Процитируй из документации зачем эта фича нужна.
+
+#### Tool-call chain
+
+1. **search-docs MCP** — `search_project_docs({"query":"что такое фича semantic_search и какие у неё зависимости","top_k":5})`
+
+   Returned:
+
+   ```json
+   [
+     {
+       "source_file": "feature-flags-spec.md",
+       "type": "feature-flags-spec",
+       "score": 0.64462674,
+       "content_snippet": "#### `semantic_search` — Semantic Vector Search\n**Default state:** Disabled\n\nExtends `search_v2` with embedding-based retrieval. Product embeddings are pre-computed and stored; at query time, the user's search string is embedded and matched by cosine similarity. Dramatically improves discoverability"
+     },
+     {
+       "source_file": "features-analysis-ru.md",
+       "type": "features-analysis-ru",
+       "score": 0.5353188,
+       "content_snippet": "| # | Ключ / Название | Статус / % | Сегменты | Стратегия | Обновлено | Зависит от | Код в репо | Сложность | Приоритет | M4 Figma |\n|---|---|---|---|---|---|---|---|---|---|---|\n| 1 | `search_v2` — Новый алгоритм поиска | 🧪 Testing / 15% | beta_users, internal | Канарейка | 2026-03-10 | — | ⚠️ Сомн"
+     },
+     {
+       "source_file": "feature-flags-spec.md",
+       "type": "feature-flags-spec",
+       "score": 0.5135308,
+       "content_snippet": "### Search & Discovery\n\n#### `search_v2` — New Search Algorithm\n**Default state:** Testing (15%)\n\nThe current product search in `productController.getProducts` uses MongoDB `$regex` on the product name field only. `search_v2` replaces this with a hybrid BM25 + TF-IDF ranking pipeline that indexes `n"
+     },
+     {
+       "source_file": "feature-flags-spec.md",
+       "type": "feature-flags-spec",
+       "score": 0.50497997,
+       "content_snippet": "**Return value on success:**\n\nReturns the updated feature object after the write, plus a `warnings` array (empty if none):\n\n```json\n{\n  \"feature_id\": \"semantic_search\",\n  \"name\": \"Semantic Vector Search\",\n  \"status\": \"Testing\",\n  \"traffic_percentage\": 10,\n  \"last_modified\": \"2026-04-27\",\n  \"warnings"
+     },
+     {
+       "source_file": "features/catalog.md",
+       "type": "feature",
+       "score": 0.4986912,
+       "content_snippet": "## Feature 2: Product Search\n\n### Назначение\nПолнотекстовый поиск по названию товара через URL-параметр. Persona: покупатель, знает что ищет.\n\n### User flow\n1. Пользователь вводит текст в SearchBox в хедере.\n2. Нажимает Enter или кликает «Search».\n3. Редирект на `/search/:keyword`.\n4. HomeScreen пол"
+     }
+   ]
+   ```
+
+   What I used from docs:
+
+   - Main hit: `feature-flags-spec.md`.
+   - Feature meaning: `semantic_search` extends `search_v2` with embedding-based retrieval.
+   - Documented dependency: `search_v2`.
+   - Important doc caveat: docs say `search_v2` should be `"Enabled"` first.
+
+2. **feature-flags MCP** — `feature-flags_get_feature_info({"feature_name":"semantic_search"})`
+
+   Returned:
+
+   ```json
+   {
+     "name": "semantic_search",
+     "display_name": "Semantic Vector Search",
+     "status": "Disabled",
+     "traffic_percentage": 0,
+     "last_modified": "2026-02-14",
+     "dependencies": ["search_v2"],
+     "dependencies_state": {"search_v2": "Testing"}
+   }
+   ```
+
+   Decision:
+
+   - Feature was `Disabled`.
+   - Dependency `search_v2` was **not** `Disabled` (`Testing`), so the conditional step could proceed.
+
+3. **feature-flags MCP** — `feature-flags_set_feature_state({"feature_name":"semantic_search","state":"Testing"})`
+
+   Returned:
+
+   ```json
+   {
+     "feature_name": "semantic_search",
+     "previous_state": "Disabled",
+     "new_state": "Testing",
+     "dependencies_state": {"search_v2": "Testing"},
+     "last_modified": "2026-05-03"
+   }
+   ```
+
+4. **feature-flags MCP** — `feature-flags_adjust_traffic_rollout({"feature_name":"semantic_search","percentage":25})`
+
+   Returned:
+
+   ```json
+   {
+     "feature_name": "semantic_search",
+     "traffic_percentage": 25,
+     "status": "Testing",
+     "last_modified": "2026-05-03"
+   }
+   ```
+
+5. **feature-flags MCP** — `feature-flags_get_feature_info({"feature_name":"semantic_search"})`
+
+   Final confirmation returned:
+
+   ```json
+   {
+     "name": "semantic_search",
+     "display_name": "Semantic Vector Search",
+     "status": "Testing",
+     "traffic_percentage": 25,
+     "last_modified": "2026-05-03",
+     "dependencies": ["search_v2"],
+     "dependencies_state": {"search_v2": "Testing"}
+   }
+   ```
+
+#### Final state
+
+- Feature: `semantic_search`
+- Status: `Testing`
+- Traffic: `25%`
+- Dependency chain observed in docs/runtime: `semantic_search` → `search_v2`
+- Dependency runtime state during rollout: `search_v2 = Testing`
+
+#### Documentation quote: why this feature exists
+
+From `feature-flags-spec.md`:
+
+> "Extends `search_v2` with embedding-based retrieval. Product embeddings are pre-computed and stored; at query time, the user's search string is embedded and matched by cosine similarity. Dramatically improves discoverability for natural-language queries (\"something warm to wear for a hike\") that keyword search cannot handle."
+
+#### Dependency quote from documentation
+
+From `feature-flags-spec.md`:
+
+> "**Dependencies:** `search_v2` must be `\"Enabled\"` first. If `search_v2` is still in Testing, semantic search results and keyword results will be inconsistent across user sessions."
+
+#### Note on runtime vs docs
+
+- **Documentation requirement:** `search_v2` should be `Enabled` first.
+- **Runtime MCP rule actually enforced by `feature-flags`:** only blocked when a dependency is `Disabled`.
+- Therefore the rollout here was allowed because runtime state was `search_v2 = Testing`, even though the docs describe that as a potentially inconsistent setup.
 
 ### Reflection (5–10 sentences)
 <FILL after running the manual prompts. Be concrete:
