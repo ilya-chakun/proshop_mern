@@ -203,10 +203,10 @@ I ran the project locally using Docker MongoDB and `npm run dev`.
 - **Backend integration**: `backend/features.json` is the live runtime source. `GET /api/feature-flags` reads the file on every request. The admin Dashboard page (`/admin/featureslist`) reads via this API.
 
 ### Pipeline numbers
-- Files in corpus: <FILL after running ingest>
-- Chunks in `proshop_docs` collection: <FILL — see `ai/chunks.jsonl` line count>
-- Type distribution: <FILL>
-- Ingest runtime (incl. first model download): <FILL minutes>
+- Files in corpus: **47** markdown files processed from `aidev-course-materials/M3/project-data`.
+- Chunks in `proshop_docs` collection: **399** (matches exported `ai/chunks.jsonl`).
+- Type distribution: **runbook 54, feature 76, api 36, adr 34, architecture 28, incident 21, page 30, glossary 15, dev-history 18, best-practices 36, feature-flags-spec 36, features-analysis-ru 15**.
+- Ingest runtime: **63.39 s (~1.1 min)** for a reproducible `--recreate` re-run with the model already cached locally; the very first run was longer because BGE-M3 weights had to be downloaded before indexing started.
 
 ### Feature flags MCP — test scenario log
 1. `feature-flags_get_feature_info({"feature_name":"search_v2"})`
@@ -408,6 +408,8 @@ Formulated answer:
 
 ### End-to-end (both MCPs in one chat) log
 
+> Note on scenario choice: the original course text uses `payment_stripe_v3`, but that exact flag is not present in this project dataset/runtime config. I used `semantic_search` for the end-to-end proof instead because it exists both in the documentation corpus and in `backend/features.json`, so the same MCP flow could be demonstrated honestly against real project data.
+
 #### Prompt
 
 > 1. Найди в документации proshop_mern что такое фича `semantic_search` и какие у неё зависимости.
@@ -554,7 +556,7 @@ From `feature-flags-spec.md`:
 - Therefore the rollout here was allowed because runtime state was `search_v2 = Testing`, even though the docs describe that as a potentially inconsistent setup.
 
 ### Reflection (5–10 sentences)
-The agent mostly followed the intended MCP flow by checking documentation first, then updating the runtime flag state, and that made the end-to-end test easy to verify in the report. The main takeaway is that semantic search extends `search_v2` with embedding-based retrieval and improves natural-language discoverability, even though the workflow still exposed some rough edges around reloads and state consistency.
+I used FastMCP + Python for both servers because it was the shortest path from the assignment contract to a working stdio MCP setup, and I used local Qdrant + BGE-M3 because that stack is cheap, reproducible, and strong on Russian queries. The hardest practical part was not the tool wrappers themselves, but keeping the retrieval pipeline, exported chunks, runtime feature state, and final report all synchronized after repeated reruns. One useful surprise was that the search-docs MCP was good enough to surface the right ADRs and incident notes with only light query refinement, but it still benefited from clearer query phrasing for dependency-style questions. Another important finding was that the end-to-end agent mostly called tools in the right order: docs first for meaning and dependencies, then runtime feature inspection, then mutation, then final confirmation. The semantic search quote from the docs also made the result easy to justify because it clearly explains that the feature extends `search_v2` with embedding-based retrieval for natural-language discovery. At the same time, the workflow exposed a real mismatch between documentation rules and runtime enforcement: docs say `search_v2` should already be Enabled, while the MCP logic only blocks on Disabled dependencies. If I iterated on this further, I would improve query logging, add stricter consistency checks between docs and runtime validation, and then test hybrid retrieval plus reranking as the next quality step.
 
 ### Artifacts in this repo
 - `ai/mcp-feature-flags/server.py` — 4 tools: `get_feature_info`, `set_feature_state`, `adjust_traffic_rollout`, `list_features`
