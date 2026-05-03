@@ -269,7 +269,7 @@ Ensure MongoDB is running and `MONGO_URI` is correct before running `npm run dat
 
 ## Homework Notes
 
-This fork is being prepared for an **AI-Driven Development** homework assignment. Commit history, documentation, and investigation logs in `docs/lessons/` reflect the learning process. See `docs/report.md` for the homework submission report.
+This fork is being prepared for an **AI-Driven Development** homework assignment. Commit history, documentation, and investigation logs in `docs/lessons/` reflect the learning process. See root `report.md` for the homework submission report.
 
 ## License
 

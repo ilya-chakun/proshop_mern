@@ -133,6 +133,37 @@ that flag may need to be added, but do not apply it blindly.
 
 1. This project is a **public homework fork** — commits must be clean, well-described, and reviewable by other people.
 2. Keep documentation **beginner-friendly** so another developer can set up and run the project within ~30 minutes.
-3. Keep `docs/report.md` as the **main homework submission report**. Do not create competing report files.
+3. Keep `report.md` at the repository root as the **main homework submission report**. Historical notes may stay in `docs/report.md`, but new submission logs should go to the root report.
 4. Keep AI work logs in `docs/lessons/` when a task involves investigation or debugging.
 5. Do not introduce dependency upgrades or large refactors unless they are directly required by a finding or fix.
+
+## Searching project documentation (search-docs MCP)
+
+When the user asks anything about proshop_mern's product, architecture,
+features, design decisions, runbooks, incidents, or history — **call
+the `search_project_docs` MCP tool first**. It performs vector search
+over the curated documentation corpus and returns the most relevant
+chunks with metadata (source_file, type, score, content_snippet).
+
+- This is faster than `grep` / `read` and uses fewer tokens.
+- Only fall back to `grep` + `read` if vector search returns nothing
+  relevant, or if you need the full file behind a chunk's `source_file`
+  metadata.
+- **Do NOT start with grep / read across the project** to answer
+  product questions — that defeats the purpose of the RAG layer.
+
+## Managing feature flags (feature-flags MCP)
+
+When the user asks about a feature flag's state, or wants to change
+one, **always go through the `feature-flags` MCP tools**:
+
+- "какой статус у X" / "is X enabled" → `get_feature_info(X)`.
+- "list features", "какие фичи есть" → `list_features()`.
+- "включи X" / "переведи Y в Testing" → `set_feature_state(...)`.
+- "поставь трафик 25%" → `adjust_traffic_rollout(...)`.
+
+**Never edit `backend/features.json` directly via Edit / Write / Patch.**
+The MCP server is the only writer; the backend reads the file fresh
+on every API request, and the admin Dashboard page reads through that
+API. Manual edits bypass validation (dependency checks, traffic locks)
+and may corrupt the file.
