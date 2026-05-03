@@ -26,5 +26,6 @@ yarn-error.log*
 .vscode/settings.json
 .idea/
 .opencode/
-
+.m3-recon.md
+BLOCKED.md
 __pycache__/
