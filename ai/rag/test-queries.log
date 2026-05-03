@@ -1,0 +1,175 @@
+═══ QUERY 1: Какая БД используется в proshop_mern и почему именно она? ═══
+============================================================
+[1] score=0.6697  type=architecture  source=architecture.md  chunk=0
+------------------------------------------------------------
+# ProShop MERN — Architecture Overview
+
+> **Deprecation notice.** The upstream project (`bradtraversy/proshop_mern`) is
+> explicitly marked as deprecated in favour of `proshop-v2`. This document
+> describes the v1 codebase as-is, including its known technical debt, because
+> understanding legacy code is part of the exercise.
+
+---
+
+## 1. System Overview
+
+ProShop is a full-stack e-commerce web appli
+============================================================
+[2] score=0.6349  type=feature-flags-spec  source=feature-flags-spec.md  chunk=3
+------------------------------------------------------------
+### Feature Flags in This Project
+
+The ProShop MERN codebase is a teaching project: a full-stack e-commerce application built with MongoDB, Express, React, and Node.js. It contains a product catalog, shopping cart, multi-step checkout, PayPal payment integration, user authentication, admin panel, and product review system.
+
+The `features.json` file in this project defines 25 feature flags covering
+============================================================
+[3] score=0.6303  type=best-practices  source=best-practices.md  chunk=1
+------------------------------------------------------------
+## 1. Introduction: Why proshop_mern Is Deprecated
+
+The original `proshop_mern` fork (bradtraversy/proshop_mern) was built circa 2020–2022 with:
+
+- **React 17** — predates concurrent rendering and Server Components
+- **Create React App** — unmaintained since 2023, superseded by Vite
+- **Classic Redux** — hand-written action creators, action types, and reducers
+- **localStorage for JWT** — known XS
+============================================================
+[4] score=0.5918  type=best-practices  source=best-practices.md  chunk=0
+------------------------------------------------------------
+# MERN E-commerce Best Practices 2026
+
+> Practical engineering guidance for building production-grade e-commerce systems on the MERN stack.
+> Written for the `proshop_mern` study project — a deliberately "dirty" 2020-era codebase used as a
+> RAG demonstration vehicle. The goal here is not to rewrite the project, but to document what
+> production teams do differently in 2026.
+
+---
+============================================================
+[5] score=0.5831  type=glossary  source=glossary.md  chunk=0
+------------------------------------------------------------
+# ProShop MERN E-Commerce Glossary
+
+**Purpose:** Define key domain, technical, operational, and business terms used in the proshop-mern project.  
+**Scope:** All domains covered by M3 curriculum.  
+**Update frequency:** As new features are added.
+
+---
+============================================================
+
+═══ QUERY 2: Какие фичи зависят от stripe_alternative? ═══
+============================================================
+[1] score=0.6760  type=feature-flags-spec  source=feature-flags-spec.md  chunk=23
+------------------------------------------------------------
+#### `stripe_alternative` — Stripe as Alternative Payment Processor
+**Default state:** Testing (5%)
+
+The `PaymentScreen` currently has a Stripe radio button that is commented out. This flag enables the Stripe payment path: the user selects Stripe, enters card details in a Stripe Elements form, and payment is confirmed via a backend webhook. Acts as a redundant payment path when PayPal is unavailab
+============================================================
+[2] score=0.6610  type=adr  source=adrs/adr-004-paypal-vs-stripe.md  chunk=4
+------------------------------------------------------------
+## Alternatives Considered
+
+### Stripe
+
+Stripe is now the team's preferred payment processor for new projects. Key advantages over PayPal:
+
+- **Test mode is a faithful replica of production.** Stripe test mode uses the same code paths as production. Test card numbers produce predictable, reproducible behavior. The double-callback incident (i-001) would have been surfaced and verifiable in Stripe's
+============================================================
+[3] score=0.6260  type=features-analysis-ru  source=features-analysis-ru.md  chunk=6
+------------------------------------------------------------
+| 12 | `stripe_alternative` — Stripe как альтернативная оплата | 🧪 Testing / 5% | beta_users | Канарейка | 2026-04-05 | — | 🟡 С нуля. Radio Stripe закомментирован в `PaymentScreen.js`, бэкенд-SDK отсутствует. | 7 | Skip | ⭐ |
+| 13 | `product_recommendations` — Рекомендации товаров | 🧪 Testing / 30% | all | A/B | 2026-04-12 | — | 🟡 С нуля. Секции/модели нет; `getTopProducts` для fallback уже есть. 
+============================================================
+[4] score=0.5880  type=adr  source=adrs/adr-004-paypal-vs-stripe.md  chunk=6
+------------------------------------------------------------
+## Migration Path
+
+If migrating to Stripe in the future, the changes required:
+1. Install `stripe` (backend) and `@stripe/react-stripe-js` (frontend)
+2. Create a Stripe Payment Intent on order creation (server-side)
+3. Pass the `clientSecret` to the frontend
+4. Replace `PayPalButtons` with `CardElement` or `PaymentElement`
+5. Implement a webhook handler for `payment_intent.succeeded`
+6. Update the
+============================================================
+[5] score=0.5497  type=adr  source=adrs/adr-005-bootstrap-vs-tailwind.md  chunk=4
+------------------------------------------------------------
+## Alternatives Considered
+============================================================
+
+═══ QUERY 3: Что случилось во время последнего incident с checkout? ═══
+============================================================
+[1] score=0.5793  type=incident  source=incidents/i-001-paypal-double-charge.md  chunk=1
+------------------------------------------------------------
+## Timeline
+
+All times UTC.
+
+| Time | Event |
+|------|-------|
+| 2023-11-03 21:14 | PayPal sandbox receives payment for order `63c4a...` (test environment) |
+| 2023-11-03 21:14:02 | First `onApprove` callback fires; backend marks order paid, decrements stock |
+| 2023-11-03 21:14:04 | Second `onApprove` fires (2-second jitter from PayPal sandbox retry logic) |
+| 2023-11-03 21:14:04 | Backend proces
+============================================================
+[2] score=0.5599  type=incident  source=incidents/i-001-paypal-double-charge.md  chunk=0
+------------------------------------------------------------
+# Incident i-001: PayPal Sandbox Webhook Double-Charge
+
+**Severity:** P1 (production financial impact)
+**Status:** Resolved
+**Date detected:** 2023-11-04
+**Date resolved:** 2023-11-06
+**Duration:** ~38 hours (detection to full resolution)
+**Author:** On-call Engineer (incident commander)
+**Reviewed by:** Engineering team — postmortem meeting 2023-11-08
+
+---
+
+## Summary
+
+A subset of orders placed v
+============================================================
+[3] score=0.5502  type=incident  source=incidents/i-001-paypal-double-charge.md  chunk=2
+------------------------------------------------------------
+## Root Cause Analysis
+
+The `@paypal/react-paypal-js` SDK fires the `onApprove` callback when PayPal confirms payment authorization. The application's `onApprove` handler called `payOrder(orderId, paymentResult)` which made a PUT request to `/api/orders/:id/pay`.
+
+The backend handler at that time was:
+
+```javascript
+const payOrder = asyncHandler(async (req, res) => {
+  const order = await Order.fi
+============================================================
+[4] score=0.5443  type=incident  source=incidents/i-002-mongo-connection-pool-exhaustion.md  chunk=0
+------------------------------------------------------------
+# Incident i-002: MongoDB Connection Pool Exhaustion — Black Friday 2023
+
+**Severity:** P0 (full service outage)
+**Status:** Resolved
+**Date detected:** 2023-11-24 08:47 UTC
+**Date resolved:** 2023-11-24 11:30 UTC
+**Duration:** 2 hours 43 minutes
+**Author:** On-call Engineer
+**Reviewed by:** Full engineering team — postmortem 2023-11-27
+
+---
+
+## Summary
+
+On Black Friday 2023, the ProShop service e
+============================================================
+[5] score=0.5235  type=incident  source=incidents/i-002-mongo-connection-pool-exhaustion.md  chunk=1
+------------------------------------------------------------
+## Timeline
+
+All times UTC.
+
+| Time | Event |
+|------|-------|
+| 2023-11-24 08:00 | Black Friday sale begins; marketing email sent to ~1,200 subscribers |
+| 2023-11-24 08:20 | Request rate rises from baseline 8 req/min to ~180 req/min |
+| 2023-11-24 08:41 | MongoDB Atlas connection count reaches 5 (pool ceiling) |
+| 2023-11-24 08:43 | First `MongoTimeoutError: connection timed out` appears in appl
+============================================================
