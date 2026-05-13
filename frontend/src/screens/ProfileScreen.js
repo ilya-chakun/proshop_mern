@@ -8,6 +8,9 @@ import { getUserDetails, updateUserProfile } from '../actions/userActions'
 import { listMyOrders } from '../actions/orderActions'
 import { USER_UPDATE_PROFILE_RESET } from '../constants/userConstants'
 
+/**
+ * User profile & order history with design system tokens.
+ */
 const ProfileScreen = ({ location, history }) => {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -58,7 +61,6 @@ const ProfileScreen = ({ location, history }) => {
       <Col md={3}>
         <h2>User Profile</h2>
         {message && <Message variant='danger'>{message}</Message>}
-        {}
         {success && <Message variant='success'>Profile Updated</Message>}
         {loading ? (
           <Loader />
@@ -66,47 +68,63 @@ const ProfileScreen = ({ location, history }) => {
           <Message variant='danger'>{error}</Message>
         ) : (
           <Form onSubmit={submitHandler}>
-            <Form.Group controlId='name'>
-              <Form.Label>Name</Form.Label>
+            <Form.Group controlId='name' style={{ marginBottom: 'var(--ps-space-2)' }}>
+              <Form.Label style={{ fontWeight: 500 }}>Name</Form.Label>
               <Form.Control
                 type='name'
                 placeholder='Enter name'
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-              ></Form.Control>
+                aria-label='Full name'
+                style={{ borderRadius: 'var(--ps-radius-sm)' }}
+              />
             </Form.Group>
 
-            <Form.Group controlId='email'>
-              <Form.Label>Email Address</Form.Label>
+            <Form.Group controlId='email' style={{ marginBottom: 'var(--ps-space-2)' }}>
+              <Form.Label style={{ fontWeight: 500 }}>Email Address</Form.Label>
               <Form.Control
                 type='email'
                 placeholder='Enter email'
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-              ></Form.Control>
+                aria-label='Email address'
+                style={{ borderRadius: 'var(--ps-radius-sm)' }}
+              />
             </Form.Group>
 
-            <Form.Group controlId='password'>
-              <Form.Label>Password</Form.Label>
+            <Form.Group controlId='password' style={{ marginBottom: 'var(--ps-space-2)' }}>
+              <Form.Label style={{ fontWeight: 500 }}>Password</Form.Label>
               <Form.Control
                 type='password'
                 placeholder='Enter password'
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-              ></Form.Control>
+                aria-label='New password'
+                style={{ borderRadius: 'var(--ps-radius-sm)' }}
+              />
             </Form.Group>
 
-            <Form.Group controlId='confirmPassword'>
-              <Form.Label>Confirm Password</Form.Label>
+            <Form.Group controlId='confirmPassword' style={{ marginBottom: 'var(--ps-space-3)' }}>
+              <Form.Label style={{ fontWeight: 500 }}>Confirm Password</Form.Label>
               <Form.Control
                 type='password'
                 placeholder='Confirm password'
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-              ></Form.Control>
+                aria-label='Confirm password'
+                style={{ borderRadius: 'var(--ps-radius-sm)' }}
+              />
             </Form.Group>
 
-            <Button type='submit' variant='primary'>
+            <Button
+              type='submit'
+              variant='primary'
+              style={{
+                borderRadius: 'var(--ps-radius-sm)',
+                padding: 'var(--ps-space-1) var(--ps-space-2)',
+                fontWeight: 600,
+              }}
+            >
               Update
             </Button>
           </Form>
@@ -118,8 +136,17 @@ const ProfileScreen = ({ location, history }) => {
           <Loader />
         ) : errorOrders ? (
           <Message variant='danger'>{errorOrders}</Message>
+        ) : orders.length === 0 ? (
+          <div className='ps-empty-state'>
+            <p style={{ fontSize: 'var(--ps-text-md)' }}>No orders yet</p>
+          </div>
         ) : (
-          <Table striped bordered hover responsive className='table-sm'>
+          <Table
+            striped
+            hover
+            responsive
+            className='table-sm ps-table'
+          >
             <thead>
               <tr>
                 <th>ID</th>
@@ -133,26 +160,53 @@ const ProfileScreen = ({ location, history }) => {
             <tbody>
               {orders.map((order) => (
                 <tr key={order._id}>
-                  <td>{order._id}</td>
+                  <td style={{ fontFamily: 'monospace', fontSize: 'var(--ps-text-xs)' }}>
+                    {order._id}
+                  </td>
                   <td>{order.createdAt.substring(0, 10)}</td>
-                  <td>{order.totalPrice}</td>
+                  <td style={{ fontWeight: 600 }}>${order.totalPrice}</td>
                   <td>
                     {order.isPaid ? (
-                      order.paidAt.substring(0, 10)
+                      <span className='ps-badge ps-badge-enabled'>
+                        {order.paidAt.substring(0, 10)}
+                      </span>
                     ) : (
-                      <i className='fas fa-times' style={{ color: 'red' }}></i>
+                      <span
+                        className='ps-badge'
+                        style={{
+                          background: 'rgba(220, 38, 38, 0.1)',
+                          color: 'var(--ps-danger)',
+                        }}
+                      >
+                        Not Paid
+                      </span>
                     )}
                   </td>
                   <td>
                     {order.isDelivered ? (
-                      order.deliveredAt.substring(0, 10)
+                      <span className='ps-badge ps-badge-enabled'>
+                        {order.deliveredAt.substring(0, 10)}
+                      </span>
                     ) : (
-                      <i className='fas fa-times' style={{ color: 'red' }}></i>
+                      <span
+                        className='ps-badge'
+                        style={{
+                          background: 'rgba(220, 38, 38, 0.1)',
+                          color: 'var(--ps-danger)',
+                        }}
+                      >
+                        Not Delivered
+                      </span>
                     )}
                   </td>
                   <td>
                     <LinkContainer to={`/order/${order._id}`}>
-                      <Button className='btn-sm' variant='light'>
+                      <Button
+                        className='btn-sm'
+                        variant='outline-primary'
+                        aria-label={`View order ${order._id}`}
+                        style={{ borderRadius: 'var(--ps-radius-sm)' }}
+                      >
                         Details
                       </Button>
                     </LinkContainer>

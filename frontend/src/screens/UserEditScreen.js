@@ -8,6 +8,9 @@ import FormContainer from '../components/FormContainer'
 import { getUserDetails, updateUser } from '../actions/userActions'
 import { USER_UPDATE_RESET } from '../constants/userConstants'
 
+/**
+ * Admin user edit form with design system tokens.
+ */
 const UserEditScreen = ({ match, history }) => {
   const userId = match.params.id
 
@@ -49,11 +52,28 @@ const UserEditScreen = ({ match, history }) => {
 
   return (
     <>
-      <Link to='/admin/userlist' className='btn btn-light my-3'>
+      <Link
+        to='/admin/userlist'
+        className='btn btn-outline-secondary'
+        style={{
+          borderRadius: 'var(--ps-radius-sm)',
+          marginBottom: 'var(--ps-space-3)',
+          fontWeight: 500,
+        }}
+      >
         Go Back
       </Link>
       <FormContainer>
-        <h1>Edit User</h1>
+        <h1
+          style={{
+            fontSize: 'var(--ps-text-xl)',
+            fontWeight: 700,
+            marginBottom: 'var(--ps-space-3)',
+            textAlign: 'center',
+          }}
+        >
+          Edit User
+        </h1>
         {loadingUpdate && <Loader />}
         {errorUpdate && <Message variant='danger'>{errorUpdate}</Message>}
         {loading ? (
@@ -62,36 +82,50 @@ const UserEditScreen = ({ match, history }) => {
           <Message variant='danger'>{error}</Message>
         ) : (
           <Form onSubmit={submitHandler}>
-            <Form.Group controlId='name'>
-              <Form.Label>Name</Form.Label>
+            <Form.Group controlId='name' style={{ marginBottom: 'var(--ps-space-2)' }}>
+              <Form.Label style={{ fontWeight: 500 }}>Name</Form.Label>
               <Form.Control
                 type='name'
                 placeholder='Enter name'
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-              ></Form.Control>
+                aria-label='User name'
+                style={{ borderRadius: 'var(--ps-radius-sm)' }}
+              />
             </Form.Group>
 
-            <Form.Group controlId='email'>
-              <Form.Label>Email Address</Form.Label>
+            <Form.Group controlId='email' style={{ marginBottom: 'var(--ps-space-2)' }}>
+              <Form.Label style={{ fontWeight: 500 }}>Email Address</Form.Label>
               <Form.Control
                 type='email'
                 placeholder='Enter email'
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-              ></Form.Control>
+                aria-label='Email address'
+                style={{ borderRadius: 'var(--ps-radius-sm)' }}
+              />
             </Form.Group>
 
-            <Form.Group controlId='isadmin'>
+            <Form.Group controlId='isadmin' style={{ marginBottom: 'var(--ps-space-3)' }}>
               <Form.Check
                 type='checkbox'
                 label='Is Admin'
                 checked={isAdmin}
                 onChange={(e) => setIsAdmin(e.target.checked)}
-              ></Form.Check>
+                aria-label='Admin status'
+              />
             </Form.Group>
 
-            <Button type='submit' variant='primary'>
+            <Button
+              type='submit'
+              variant='primary'
+              className='btn-block'
+              style={{
+                borderRadius: 'var(--ps-radius-sm)',
+                padding: 'var(--ps-space-1) var(--ps-space-2)',
+                fontWeight: 600,
+              }}
+            >
               Update
             </Button>
           </Form>
