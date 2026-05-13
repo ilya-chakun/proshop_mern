@@ -7,6 +7,9 @@ import Loader from '../components/Loader'
 import FormContainer from '../components/FormContainer'
 import { login } from '../actions/userActions'
 
+/**
+ * Login screen with design system styling.
+ */
 const LoginScreen = ({ location, history }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -31,39 +34,64 @@ const LoginScreen = ({ location, history }) => {
 
   return (
     <FormContainer>
-      <h1>Sign In</h1>
+      <h1
+        style={{
+          fontSize: 'var(--ps-text-xl)',
+          fontWeight: 700,
+          marginBottom: 'var(--ps-space-3)',
+          textAlign: 'center',
+        }}
+      >
+        Sign In
+      </h1>
       {error && <Message variant='danger'>{error}</Message>}
       {loading && <Loader />}
       <Form onSubmit={submitHandler}>
-        <Form.Group controlId='email'>
-          <Form.Label>Email Address</Form.Label>
+        <Form.Group controlId='email' style={{ marginBottom: 'var(--ps-space-2)' }}>
+          <Form.Label style={{ fontWeight: 500 }}>Email Address</Form.Label>
           <Form.Control
             type='email'
             placeholder='Enter email'
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-          ></Form.Control>
+            aria-label='Email address'
+            style={{ borderRadius: 'var(--ps-radius-sm)' }}
+          />
         </Form.Group>
 
-        <Form.Group controlId='password'>
-          <Form.Label>Password</Form.Label>
+        <Form.Group controlId='password' style={{ marginBottom: 'var(--ps-space-3)' }}>
+          <Form.Label style={{ fontWeight: 500 }}>Password</Form.Label>
           <Form.Control
             type='password'
             placeholder='Enter password'
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-          ></Form.Control>
+            aria-label='Password'
+            style={{ borderRadius: 'var(--ps-radius-sm)' }}
+          />
         </Form.Group>
 
-        <Button type='submit' variant='primary'>
+        <Button
+          type='submit'
+          variant='primary'
+          className='btn-block'
+          style={{
+            borderRadius: 'var(--ps-radius-sm)',
+            padding: 'var(--ps-space-1) var(--ps-space-2)',
+            fontWeight: 600,
+          }}
+        >
           Sign In
         </Button>
       </Form>
 
-      <Row className='py-3'>
-        <Col>
+      <Row style={{ marginTop: 'var(--ps-space-2)' }}>
+        <Col style={{ textAlign: 'center', color: 'var(--ps-text-muted)' }}>
           New Customer?{' '}
-          <Link to={redirect ? `/register?redirect=${redirect}` : '/register'}>
+          <Link
+            to={redirect ? `/register?redirect=${redirect}` : '/register'}
+            style={{ color: 'var(--ps-primary)', fontWeight: 500 }}
+          >
             Register
           </Link>
         </Col>

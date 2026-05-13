@@ -12,6 +12,9 @@ import {
 } from '../actions/productActions'
 import { PRODUCT_CREATE_REVIEW_RESET } from '../constants/productConstants'
 
+/**
+ * Product detail screen with design system styling.
+ */
 const ProductScreen = ({ history, match }) => {
   const [qty, setQty] = useState(1)
   const [rating, setRating] = useState(0)
@@ -59,7 +62,14 @@ const ProductScreen = ({ history, match }) => {
 
   return (
     <>
-      <Link className='btn btn-light my-3' to='/'>
+      <Link
+        className='btn btn-outline-secondary'
+        to='/'
+        style={{
+          marginBottom: 'var(--ps-space-3)',
+          borderRadius: 'var(--ps-radius-sm)',
+        }}
+      >
         Go Back
       </Link>
       {loading ? (
@@ -70,28 +80,64 @@ const ProductScreen = ({ history, match }) => {
         <>
           <Meta title={product.name} />
           <Row>
-            <Col md={6}>
-              <Image src={product.image} alt={product.name} fluid />
+            <Col md={6} style={{ marginBottom: 'var(--ps-space-3)' }}>
+              <Image
+                src={product.image}
+                alt={product.name}
+                fluid
+                style={{ borderRadius: 'var(--ps-radius-md)' }}
+              />
             </Col>
-            <Col md={3}>
+            <Col md={3} style={{ marginBottom: 'var(--ps-space-3)' }}>
               <ListGroup variant='flush'>
-                <ListGroup.Item>
-                  <h3>{product.name}</h3>
+                <ListGroup.Item style={{ border: 'none', paddingLeft: 0 }}>
+                  <h3
+                    style={{
+                      fontSize: 'var(--ps-text-lg)',
+                      fontWeight: 600,
+                      padding: 0,
+                      margin: 0,
+                    }}
+                  >
+                    {product.name}
+                  </h3>
                 </ListGroup.Item>
-                <ListGroup.Item>
+                <ListGroup.Item style={{ border: 'none', paddingLeft: 0 }}>
                   <Rating
                     value={product.rating}
                     text={`${product.numReviews} reviews`}
                   />
                 </ListGroup.Item>
-                <ListGroup.Item>Price: ${product.price}</ListGroup.Item>
-                <ListGroup.Item>
-                  Description: {product.description}
+                <ListGroup.Item
+                  style={{
+                    border: 'none',
+                    paddingLeft: 0,
+                    fontSize: 'var(--ps-text-xl)',
+                    fontWeight: 700,
+                  }}
+                >
+                  ${product.price}
+                </ListGroup.Item>
+                <ListGroup.Item
+                  style={{
+                    border: 'none',
+                    paddingLeft: 0,
+                    color: 'var(--ps-text-muted)',
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {product.description}
                 </ListGroup.Item>
               </ListGroup>
             </Col>
             <Col md={3}>
-              <Card>
+              <Card
+                style={{
+                  border: '1px solid var(--ps-border)',
+                  borderRadius: 'var(--ps-radius-md)',
+                  boxShadow: 'var(--ps-shadow-sm)',
+                }}
+              >
                 <ListGroup variant='flush'>
                   <ListGroup.Item>
                     <Row>
@@ -106,7 +152,15 @@ const ProductScreen = ({ history, match }) => {
                     <Row>
                       <Col>Status:</Col>
                       <Col>
-                        {product.countInStock > 0 ? 'In Stock' : 'Out Of Stock'}
+                        <span
+                          className={
+                            product.countInStock > 0
+                              ? 'ps-badge ps-badge-enabled'
+                              : 'ps-badge ps-badge-disabled'
+                          }
+                        >
+                          {product.countInStock > 0 ? 'In Stock' : 'Out Of Stock'}
+                        </span>
                       </Col>
                     </Row>
                   </ListGroup.Item>
@@ -120,6 +174,8 @@ const ProductScreen = ({ history, match }) => {
                             as='select'
                             value={qty}
                             onChange={(e) => setQty(e.target.value)}
+                            aria-label='Select quantity'
+                            style={{ borderRadius: 'var(--ps-radius-sm)' }}
                           >
                             {[...Array(product.countInStock).keys()].map(
                               (x) => (
@@ -140,6 +196,10 @@ const ProductScreen = ({ history, match }) => {
                       className='btn-block'
                       type='button'
                       disabled={product.countInStock === 0}
+                      style={{
+                        borderRadius: 'var(--ps-radius-sm)',
+                        fontWeight: 600,
+                      }}
                     >
                       Add To Cart
                     </Button>
@@ -148,21 +208,48 @@ const ProductScreen = ({ history, match }) => {
               </Card>
             </Col>
           </Row>
-          <Row>
+
+          {/* Reviews Section */}
+          <Row style={{ marginTop: 'var(--ps-space-5)' }}>
             <Col md={6}>
-              <h2>Reviews</h2>
-              {product.reviews.length === 0 && <Message>No Reviews</Message>}
+              <h2
+                style={{
+                  fontSize: 'var(--ps-text-xl)',
+                  fontWeight: 600,
+                  marginBottom: 'var(--ps-space-2)',
+                }}
+              >
+                Reviews
+              </h2>
+              {product.reviews.length === 0 && (
+                <div className='ps-empty-state'>
+                  <p>No reviews yet. Be the first to share your thoughts.</p>
+                </div>
+              )}
               <ListGroup variant='flush'>
                 {product.reviews.map((review) => (
-                  <ListGroup.Item key={review._id}>
+                  <ListGroup.Item
+                    key={review._id}
+                    style={{ paddingLeft: 0, paddingRight: 0 }}
+                  >
                     <strong>{review.name}</strong>
                     <Rating value={review.rating} />
-                    <p>{review.createdAt.substring(0, 10)}</p>
+                    <p style={{ color: 'var(--ps-text-muted)', fontSize: 'var(--ps-text-xs)' }}>
+                      {review.createdAt.substring(0, 10)}
+                    </p>
                     <p>{review.comment}</p>
                   </ListGroup.Item>
                 ))}
-                <ListGroup.Item>
-                  <h2>Write a Customer Review</h2>
+                <ListGroup.Item style={{ paddingLeft: 0, paddingRight: 0 }}>
+                  <h2
+                    style={{
+                      fontSize: 'var(--ps-text-lg)',
+                      fontWeight: 600,
+                      marginBottom: 'var(--ps-space-2)',
+                    }}
+                  >
+                    Write a Customer Review
+                  </h2>
                   {successProductReview && (
                     <Message variant='success'>
                       Review submitted successfully
@@ -174,12 +261,17 @@ const ProductScreen = ({ history, match }) => {
                   )}
                   {userInfo ? (
                     <Form onSubmit={submitHandler}>
-                      <Form.Group controlId='rating'>
-                        <Form.Label>Rating</Form.Label>
+                      <Form.Group
+                        controlId='rating'
+                        style={{ marginBottom: 'var(--ps-space-2)' }}
+                      >
+                        <Form.Label style={{ fontWeight: 500 }}>Rating</Form.Label>
                         <Form.Control
                           as='select'
                           value={rating}
                           onChange={(e) => setRating(e.target.value)}
+                          aria-label='Select rating'
+                          style={{ borderRadius: 'var(--ps-radius-sm)' }}
                         >
                           <option value=''>Select...</option>
                           <option value='1'>1 - Poor</option>
@@ -189,26 +281,35 @@ const ProductScreen = ({ history, match }) => {
                           <option value='5'>5 - Excellent</option>
                         </Form.Control>
                       </Form.Group>
-                      <Form.Group controlId='comment'>
-                        <Form.Label>Comment</Form.Label>
+                      <Form.Group
+                        controlId='comment'
+                        style={{ marginBottom: 'var(--ps-space-2)' }}
+                      >
+                        <Form.Label style={{ fontWeight: 500 }}>Comment</Form.Label>
                         <Form.Control
                           as='textarea'
                           row='3'
                           value={comment}
                           onChange={(e) => setComment(e.target.value)}
-                        ></Form.Control>
+                          aria-label='Review comment'
+                          style={{ borderRadius: 'var(--ps-radius-sm)' }}
+                        />
                       </Form.Group>
                       <Button
                         disabled={loadingProductReview}
                         type='submit'
                         variant='primary'
+                        style={{
+                          borderRadius: 'var(--ps-radius-sm)',
+                          fontWeight: 600,
+                        }}
                       >
                         Submit
                       </Button>
                     </Form>
                   ) : (
                     <Message>
-                      Please <Link to='/login'>sign in</Link> to write a review{' '}
+                      Please <Link to='/login'>sign in</Link> to write a review
                     </Message>
                   )}
                 </ListGroup.Item>
