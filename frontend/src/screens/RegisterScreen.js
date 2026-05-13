@@ -7,6 +7,9 @@ import Loader from '../components/Loader'
 import FormContainer from '../components/FormContainer'
 import { register } from '../actions/userActions'
 
+/**
+ * Register screen with design system styling.
+ */
 const RegisterScreen = ({ location, history }) => {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -38,60 +41,89 @@ const RegisterScreen = ({ location, history }) => {
 
   return (
     <FormContainer>
-      <h1>Sign Up</h1>
+      <h1
+        style={{
+          fontSize: 'var(--ps-text-xl)',
+          fontWeight: 700,
+          marginBottom: 'var(--ps-space-3)',
+          textAlign: 'center',
+        }}
+      >
+        Create Account
+      </h1>
       {message && <Message variant='danger'>{message}</Message>}
       {error && <Message variant='danger'>{error}</Message>}
       {loading && <Loader />}
       <Form onSubmit={submitHandler}>
-        <Form.Group controlId='name'>
-          <Form.Label>Name</Form.Label>
+        <Form.Group controlId='name' style={{ marginBottom: 'var(--ps-space-2)' }}>
+          <Form.Label style={{ fontWeight: 500 }}>Name</Form.Label>
           <Form.Control
-            type='name'
+            type='text'
             placeholder='Enter name'
             value={name}
             onChange={(e) => setName(e.target.value)}
-          ></Form.Control>
+            aria-label='Full name'
+            style={{ borderRadius: 'var(--ps-radius-sm)' }}
+          />
         </Form.Group>
 
-        <Form.Group controlId='email'>
-          <Form.Label>Email Address</Form.Label>
+        <Form.Group controlId='email' style={{ marginBottom: 'var(--ps-space-2)' }}>
+          <Form.Label style={{ fontWeight: 500 }}>Email Address</Form.Label>
           <Form.Control
             type='email'
             placeholder='Enter email'
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-          ></Form.Control>
+            aria-label='Email address'
+            style={{ borderRadius: 'var(--ps-radius-sm)' }}
+          />
         </Form.Group>
 
-        <Form.Group controlId='password'>
-          <Form.Label>Password</Form.Label>
+        <Form.Group controlId='password' style={{ marginBottom: 'var(--ps-space-2)' }}>
+          <Form.Label style={{ fontWeight: 500 }}>Password</Form.Label>
           <Form.Control
             type='password'
             placeholder='Enter password'
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-          ></Form.Control>
+            aria-label='Password'
+            style={{ borderRadius: 'var(--ps-radius-sm)' }}
+          />
         </Form.Group>
 
-        <Form.Group controlId='confirmPassword'>
-          <Form.Label>Confirm Password</Form.Label>
+        <Form.Group controlId='confirmPassword' style={{ marginBottom: 'var(--ps-space-3)' }}>
+          <Form.Label style={{ fontWeight: 500 }}>Confirm Password</Form.Label>
           <Form.Control
             type='password'
             placeholder='Confirm password'
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-          ></Form.Control>
+            aria-label='Confirm password'
+            style={{ borderRadius: 'var(--ps-radius-sm)' }}
+          />
         </Form.Group>
 
-        <Button type='submit' variant='primary'>
+        <Button
+          type='submit'
+          variant='primary'
+          className='btn-block'
+          style={{
+            borderRadius: 'var(--ps-radius-sm)',
+            padding: 'var(--ps-space-1) var(--ps-space-2)',
+            fontWeight: 600,
+          }}
+        >
           Register
         </Button>
       </Form>
 
-      <Row className='py-3'>
-        <Col>
+      <Row style={{ marginTop: 'var(--ps-space-2)' }}>
+        <Col style={{ textAlign: 'center', color: 'var(--ps-text-muted)' }}>
           Have an Account?{' '}
-          <Link to={redirect ? `/login?redirect=${redirect}` : '/login'}>
+          <Link
+            to={redirect ? `/login?redirect=${redirect}` : '/login'}
+            style={{ color: 'var(--ps-primary)', fontWeight: 500 }}
+          >
             Login
           </Link>
         </Col>
