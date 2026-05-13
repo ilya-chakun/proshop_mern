@@ -167,3 +167,5 @@ The MCP server is the only writer; the backend reads the file fresh
 on every API request, and the admin Dashboard page reads through that
 API. Manual edits bypass validation (dependency checks, traffic locks)
 and may corrupt the file.
+
+## Design rules: see ./DESIGN.md
