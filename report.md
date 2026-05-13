@@ -625,3 +625,191 @@ Finding #4 turned out to be a good example of a legacy architectural quirk rathe
 ### Where AI went wrong and how it was corrected
 
 The biggest AI mistake in this round was report placement: an intermediate M3 draft briefly diverged from the final submission location, which conflicted with the updated spec that expects `report.md` at the repo root. The fix was to consolidate everything into a single merged root report and update the manual instructions so all new MCP transcripts are appended there. Another process mistake was an incomplete startup instruction; it was corrected by making the manual steps explicitly require MongoDB startup, seed import, `/mcp` verification, and preflight API checks before the live MCP prompts.
+
+---
+
+## M4 — Design System & UI Redesign
+
+### Overview
+
+Module 4 required creating a design system document (`DESIGN.md`), implementing CSS design tokens, building a mandatory Feature Dashboard admin screen, and redesigning existing screens to follow the new design language.
+
+### DESIGN.md
+
+Created `DESIGN.md` at the repository root with 8 sections:
+
+| Section | Content |
+|---------|---------|
+| 1. Color Palette | CSS custom properties with `--ps-` prefix; primary `#1a56db`, success `#047857` (WCAG AA 4.6:1), danger, warning, muted |
+| 2. Typography | DM Sans (not Inter) via Google Fonts; scale 14/16/18/20/24/32 |
+| 3. Spacing | Strict multiples of 8px only (8, 16, 24, 32, 40, 48, 56, 64) |
+| 4. Border Radius | 4px (sm), 8px (md), 12px (lg), 9999px (pill) |
+| 5. Elevation / Shadow | Minimal: `--ps-shadow-sm` on cards only, no shadow on badges or stats |
+| 6. Component Patterns | Cards, buttons, inputs, badges (tinted), tables (zebra striped) |
+| 7. Interactive States | Hover, focus-visible ring, skeleton loading, empty states, error states |
+| 8. Anti-AI-Slop Guards | No gradients, no colored-border stat cards, no 2-col comparison, tinted badges not solid |
+
+Referenced from `AGENTS.md` line 171: `## Design rules: see ./DESIGN.md`
+
+### CSS Design Tokens
+
+Implemented in `frontend/src/index.css` (~360 lines total):
+
+- `:root` variables for all tokens from DESIGN.md
+- Skeleton shimmer animation (`@keyframes ps-shimmer`)
+- Tinted badge classes (`.ps-badge-enabled`, `.ps-badge-testing`, `.ps-badge-disabled`)
+- Table enhancements (`.ps-table` with uppercase headers, zebra rows, hover)
+- Button overrides using `--ps-primary` / `--ps-primary-hover`
+- Focus ring via `*:focus-visible`
+- Range slider cross-browser styling
+- Empty/error state classes
+- Summary stats bar class
+
+Google Fonts `<link>` added to `frontend/public/index.html` for DM Sans (400/500/600/700).
+
+### Feature Dashboard (Mandatory)
+
+Created `frontend/src/screens/FeatureDashboardScreen.js` — a fully redesigned admin dashboard at `/admin/featuredashboard`:
+
+| Feature | Implementation |
+|---------|---------------|
+| Feature list | Table layout (not cards) — 22+ features need scanability |
+| Status display | Tinted badges (`.ps-badge-enabled/testing/disabled`) |
+| Status change | `<Form.Control as="select">` dropdown (3-state: Disabled/Testing/Enabled) |
+| Traffic control | `<input type="range">` slider per row with percentage label |
+| Search | Text input filtering by feature name |
+| Status filter | ButtonGroup with `aria-pressed` states |
+| Summary stats | Inline counters ("Enabled: N · Testing: N · Disabled: N") — not stat cards |
+| Loading state | 6 skeleton table rows with shimmer animation |
+| Empty state | "No features match" text with reset link |
+| Error state | Alert with `role="alert"` and retry button |
+| Accessibility | ARIA labels on search, filter, slider, refresh; `aria-live="polite"` for results |
+| Route | `/admin/featuredashboard` with `isAdmin` guard |
+| Navigation | Admin dropdown link in Header updated |
+
+### Screens Redesigned (16 total)
+
+All 16 screens in the application were redesigned with the design system:
+
+| # | Screen | PR | Key Changes |
+|---|--------|----|-------------|
+| 1 | HomeScreen | #27 | Product grid spacing, card shadows, typography tokens |
+| 2 | LoginScreen | #27 | Centered form card, consistent input styles, ARIA labels |
+| 3 | RegisterScreen | #27 | Same treatment as Login |
+| 4 | ProductScreen | #27 | Detail layout, review section, tinted badges |
+| 5 | CartScreen | #27 | Summary card, item layout, empty state |
+| 6 | ShippingScreen | #28 | Token spacing, ARIA labels, styled inputs |
+| 7 | PaymentScreen | #28 | Token spacing, styled radio group |
+| 8 | PlaceOrderScreen | #28 | ps-card summary, total separator, empty state |
+| 9 | OrderScreen | #28 | Tinted badges for paid/delivered, ps-card summary |
+| 10 | ProfileScreen | #28 | ps-table for orders, tinted badges, empty state |
+| 11 | UserListScreen | #28 | ps-table, admin/user tinted badges, outline buttons |
+| 12 | UserEditScreen | #28 | Styled form, outline Go Back button, ARIA labels |
+| 13 | ProductListScreen | #28 | ps-table, category badges, outline action buttons |
+| 14 | ProductEditScreen | #28 | Styled form fields, outline Go Back, ARIA labels |
+| 15 | OrderListScreen | #28 | ps-table, tinted paid/delivered badges |
+| 16 | FeatureDashboardScreen | #26 | Full rebuild (see section above) |
+
+Additionally redesigned shared components:
+
+| Component | PR | Changes |
+|-----------|----|---------|
+| Product.js (card) | #27 | Design tokens, hover, ARIA |
+| Loader.js | #27 | Skeleton shimmer loader |
+| FormContainer.js | #27 | Card wrapper with ps-card class |
+| CheckoutSteps.js | #28 | Token colors, font weights |
+
+### Cleanup
+
+- Deleted `FeaturesListScreen.js` (superseded by `FeatureDashboardScreen.js` in PR #26)
+- No code references remained to the deleted file (only documentation mentions in PLAN_M4.md and docs/m3/)
+
+### Pull Requests
+
+| PR | Title | Status |
+|----|-------|--------|
+| #24 | `docs: add DESIGN.md, PLAN_M4.md, link design rules in AGENTS.md` | Merged |
+| #25 | `design: add CSS design tokens and component styles` | Merged |
+| #26 | `feat: add FeatureDashboardScreen with redesigned admin dashboard` | Merged |
+| #27 | `design: redesign 5 public screens + 3 shared components with design tokens` | Merged |
+| #28 | `design: redesign remaining 10 screens + CheckoutSteps with design tokens` | Merged |
+
+### Key Design Decisions
+
+1. **Table over cards** for Feature Dashboard — 22+ features need columnar scanning, not vertical card scrolling
+2. **DM Sans** font — modern geometric sans-serif, not Inter (explicitly avoided per assignment)
+3. **Tinted badges** (`rgba(color, 0.1)` background + dark text) instead of solid Bootstrap badge fills
+4. **Green `#047857`** instead of `#059669` — WCAG AA compliant (4.6:1 contrast ratio vs 3.4:1)
+5. **Strict 8px spacing** — no 4px micro-spacing, assignment checklist requires multiples of 8
+6. **Inline stat counters** instead of colored-border stat cards — avoids the most common AI dashboard anti-pattern
+7. **Dropdown select** for 3-state status — `Form.Check switch` is binary only, `<select>` handles Disabled/Testing/Enabled natively
+
+### Anti-AI-Slop Checklist
+
+| Check | Status |
+|-------|--------|
+| No gradients (linear, radial) | ✅ |
+| No 2-column comparison blocks | ✅ |
+| No colored left-border stat cards | ✅ |
+| No heavy decorative borders | ✅ |
+| Hover state on buttons | ✅ |
+| Focus-visible ring on keyboard nav | ✅ |
+| Loading = skeleton rows, not spinner | ✅ |
+| All spacing multiples of 8 | ✅ |
+| Badges: tinted, not solid Bootstrap | ✅ |
+| Font: DM Sans, NOT Inter | ✅ |
+
+### Build Verification
+
+```
+npm run build --prefix frontend
+# File sizes after gzip:
+#   90.04 KB  build/static/js/2.252e00b5.chunk.js
+#   23.65 KB  build/static/css/main.9bfcf34a.chunk.css
+#   14.23 KB  build/static/js/main.e8c4cccc.chunk.js
+#   770 B     build/static/js/runtime-main.c8a21426.js
+# The build folder is ready to be deployed.
+```
+
+### Files Modified/Created (M4)
+
+| File | Action |
+|------|--------|
+| `DESIGN.md` | Created |
+| `PLAN_M4.md` | Created |
+| `AGENTS.md` | Modified (1 line: design rules reference) |
+| `frontend/public/index.html` | Modified (Google Fonts link) |
+| `frontend/src/index.css` | Modified (added ~300 lines design tokens) |
+| `frontend/src/App.js` | Modified (route change) |
+| `frontend/src/components/Header.js` | Modified (admin dropdown link) |
+| `frontend/src/screens/FeatureDashboardScreen.js` | Created |
+| `frontend/src/screens/HomeScreen.js` | Modified |
+| `frontend/src/screens/LoginScreen.js` | Modified |
+| `frontend/src/screens/RegisterScreen.js` | Modified |
+| `frontend/src/screens/ProductScreen.js` | Modified |
+| `frontend/src/screens/CartScreen.js` | Modified |
+| `frontend/src/screens/ShippingScreen.js` | Modified |
+| `frontend/src/screens/PaymentScreen.js` | Modified |
+| `frontend/src/screens/PlaceOrderScreen.js` | Modified |
+| `frontend/src/screens/OrderScreen.js` | Modified |
+| `frontend/src/screens/ProfileScreen.js` | Modified |
+| `frontend/src/screens/UserListScreen.js` | Modified |
+| `frontend/src/screens/UserEditScreen.js` | Modified |
+| `frontend/src/screens/ProductListScreen.js` | Modified |
+| `frontend/src/screens/ProductEditScreen.js` | Modified |
+| `frontend/src/screens/OrderListScreen.js` | Modified |
+| `frontend/src/screens/FeaturesListScreen.js` | Deleted |
+| `frontend/src/components/Product.js` | Modified |
+| `frontend/src/components/Loader.js` | Modified |
+| `frontend/src/components/FormContainer.js` | Modified |
+| `frontend/src/components/CheckoutSteps.js` | Modified |
+
+### M4 Reflection
+
+The M4 work spanned 5 PRs and touched 28 files. The biggest efficiency gain came from establishing the design system document and CSS tokens first (PRs #24-25), which made the subsequent screen redesigns mechanical — each screen just needed to swap hardcoded values for `var(--ps-*)` references, add ARIA labels, and replace inline-styled icons with tinted badges.
+
+The brainstorm phase (captured in PLAN_M4.md) proved valuable: it caught the binary toggle mistake (switch vs 3-state dropdown), the WCAG contrast failure in the original green, and the AI-slop patterns that would have been easy to reproduce unconsciously. The "attacker/defender" review format forced genuine design decisions rather than defaulting to the first aesthetically reasonable option.
+
+The main challenge was scope management. The assignment minimum was 1 screen beyond the dashboard, but redesigning only a few screens would have left a jarring visual inconsistency. Doing all 16 added ~30 minutes of mechanical work but produced a coherent result.
+
+One area for improvement: the inline `style={{}}` approach used across screens works but creates duplication. A future iteration could extract common style objects into a shared `designTokens.js` utility, though that would add complexity without functional benefit in this legacy React 16 codebase.
