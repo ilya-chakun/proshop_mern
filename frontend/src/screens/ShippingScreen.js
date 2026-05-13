@@ -5,6 +5,9 @@ import FormContainer from '../components/FormContainer'
 import CheckoutSteps from '../components/CheckoutSteps'
 import { saveShippingAddress } from '../actions/cartActions'
 
+/**
+ * Shipping address form with design system tokens.
+ */
 const ShippingScreen = ({ history }) => {
   const cart = useSelector((state) => state.cart)
   const { shippingAddress } = cart
@@ -25,53 +28,79 @@ const ShippingScreen = ({ history }) => {
   return (
     <FormContainer>
       <CheckoutSteps step1 step2 />
-      <h1>Shipping</h1>
+      <h1
+        style={{
+          fontSize: 'var(--ps-text-xl)',
+          fontWeight: 700,
+          marginBottom: 'var(--ps-space-3)',
+          textAlign: 'center',
+        }}
+      >
+        Shipping
+      </h1>
       <Form onSubmit={submitHandler}>
-        <Form.Group controlId='address'>
-          <Form.Label>Address</Form.Label>
+        <Form.Group controlId='address' style={{ marginBottom: 'var(--ps-space-2)' }}>
+          <Form.Label style={{ fontWeight: 500 }}>Address</Form.Label>
           <Form.Control
             type='text'
             placeholder='Enter address'
             value={address}
             required
             onChange={(e) => setAddress(e.target.value)}
-          ></Form.Control>
+            aria-label='Shipping address'
+            style={{ borderRadius: 'var(--ps-radius-sm)' }}
+          />
         </Form.Group>
 
-        <Form.Group controlId='city'>
-          <Form.Label>City</Form.Label>
+        <Form.Group controlId='city' style={{ marginBottom: 'var(--ps-space-2)' }}>
+          <Form.Label style={{ fontWeight: 500 }}>City</Form.Label>
           <Form.Control
             type='text'
             placeholder='Enter city'
             value={city}
             required
             onChange={(e) => setCity(e.target.value)}
-          ></Form.Control>
+            aria-label='City'
+            style={{ borderRadius: 'var(--ps-radius-sm)' }}
+          />
         </Form.Group>
 
-        <Form.Group controlId='postalCode'>
-          <Form.Label>Postal Code</Form.Label>
+        <Form.Group controlId='postalCode' style={{ marginBottom: 'var(--ps-space-2)' }}>
+          <Form.Label style={{ fontWeight: 500 }}>Postal Code</Form.Label>
           <Form.Control
             type='text'
             placeholder='Enter postal code'
             value={postalCode}
             required
             onChange={(e) => setPostalCode(e.target.value)}
-          ></Form.Control>
+            aria-label='Postal code'
+            style={{ borderRadius: 'var(--ps-radius-sm)' }}
+          />
         </Form.Group>
 
-        <Form.Group controlId='country'>
-          <Form.Label>Country</Form.Label>
+        <Form.Group controlId='country' style={{ marginBottom: 'var(--ps-space-3)' }}>
+          <Form.Label style={{ fontWeight: 500 }}>Country</Form.Label>
           <Form.Control
             type='text'
             placeholder='Enter country'
             value={country}
             required
             onChange={(e) => setCountry(e.target.value)}
-          ></Form.Control>
+            aria-label='Country'
+            style={{ borderRadius: 'var(--ps-radius-sm)' }}
+          />
         </Form.Group>
 
-        <Button type='submit' variant='primary'>
+        <Button
+          type='submit'
+          variant='primary'
+          className='btn-block'
+          style={{
+            borderRadius: 'var(--ps-radius-sm)',
+            padding: 'var(--ps-space-1) var(--ps-space-2)',
+            fontWeight: 600,
+          }}
+        >
           Continue
         </Button>
       </Form>

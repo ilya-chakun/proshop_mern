@@ -6,6 +6,9 @@ import Message from '../components/Message'
 import Loader from '../components/Loader'
 import { listOrders } from '../actions/orderActions'
 
+/**
+ * Admin order list with design system tokens.
+ */
 const OrderListScreen = ({ history }) => {
   const dispatch = useDispatch()
 
@@ -30,8 +33,12 @@ const OrderListScreen = ({ history }) => {
         <Loader />
       ) : error ? (
         <Message variant='danger'>{error}</Message>
+      ) : orders.length === 0 ? (
+        <div className='ps-empty-state'>
+          <p style={{ fontSize: 'var(--ps-text-md)' }}>No orders found</p>
+        </div>
       ) : (
-        <Table striped bordered hover responsive className='table-sm'>
+        <Table striped hover responsive className='table-sm ps-table'>
           <thead>
             <tr>
               <th>ID</th>
@@ -46,27 +53,56 @@ const OrderListScreen = ({ history }) => {
           <tbody>
             {orders.map((order) => (
               <tr key={order._id}>
-                <td>{order._id}</td>
-                <td>{order.user && order.user.name}</td>
+                <td style={{ fontFamily: 'monospace', fontSize: 'var(--ps-text-xs)' }}>
+                  {order._id}
+                </td>
+                <td style={{ fontWeight: 500 }}>
+                  {order.user && order.user.name}
+                </td>
                 <td>{order.createdAt.substring(0, 10)}</td>
-                <td>${order.totalPrice}</td>
+                <td style={{ fontWeight: 600 }}>${order.totalPrice}</td>
                 <td>
                   {order.isPaid ? (
-                    order.paidAt.substring(0, 10)
+                    <span className='ps-badge ps-badge-enabled'>
+                      {order.paidAt.substring(0, 10)}
+                    </span>
                   ) : (
-                    <i className='fas fa-times' style={{ color: 'red' }}></i>
+                    <span
+                      className='ps-badge'
+                      style={{
+                        background: 'rgba(220, 38, 38, 0.1)',
+                        color: 'var(--ps-danger)',
+                      }}
+                    >
+                      Not Paid
+                    </span>
                   )}
                 </td>
                 <td>
                   {order.isDelivered ? (
-                    order.deliveredAt.substring(0, 10)
+                    <span className='ps-badge ps-badge-enabled'>
+                      {order.deliveredAt.substring(0, 10)}
+                    </span>
                   ) : (
-                    <i className='fas fa-times' style={{ color: 'red' }}></i>
+                    <span
+                      className='ps-badge'
+                      style={{
+                        background: 'rgba(220, 38, 38, 0.1)',
+                        color: 'var(--ps-danger)',
+                      }}
+                    >
+                      Not Delivered
+                    </span>
                   )}
                 </td>
                 <td>
                   <LinkContainer to={`/order/${order._id}`}>
-                    <Button variant='light' className='btn-sm'>
+                    <Button
+                      variant='outline-primary'
+                      className='btn-sm'
+                      aria-label={`View order ${order._id}`}
+                      style={{ borderRadius: 'var(--ps-radius-sm)' }}
+                    >
                       Details
                     </Button>
                   </LinkContainer>

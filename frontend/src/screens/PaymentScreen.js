@@ -5,6 +5,9 @@ import FormContainer from '../components/FormContainer'
 import CheckoutSteps from '../components/CheckoutSteps'
 import { savePaymentMethod } from '../actions/cartActions'
 
+/**
+ * Payment method selection with design system tokens.
+ */
 const PaymentScreen = ({ history }) => {
   const cart = useSelector((state) => state.cart)
   const { shippingAddress } = cart
@@ -26,11 +29,25 @@ const PaymentScreen = ({ history }) => {
   return (
     <FormContainer>
       <CheckoutSteps step1 step2 step3 />
-      <h1>Payment Method</h1>
+      <h1
+        style={{
+          fontSize: 'var(--ps-text-xl)',
+          fontWeight: 700,
+          marginBottom: 'var(--ps-space-3)',
+          textAlign: 'center',
+        }}
+      >
+        Payment Method
+      </h1>
       <Form onSubmit={submitHandler}>
-        <Form.Group>
-          <Form.Label as='legend'>Select Method</Form.Label>
-          <Col>
+        <Form.Group style={{ marginBottom: 'var(--ps-space-3)' }}>
+          <Form.Label
+            as='legend'
+            style={{ fontWeight: 500, marginBottom: 'var(--ps-space-1)' }}
+          >
+            Select Method
+          </Form.Label>
+          <Col style={{ paddingLeft: 0 }}>
             <Form.Check
               type='radio'
               label='PayPal or Credit Card'
@@ -39,19 +56,21 @@ const PaymentScreen = ({ history }) => {
               value='PayPal'
               checked
               onChange={(e) => setPaymentMethod(e.target.value)}
-            ></Form.Check>
-            {/* <Form.Check
-              type='radio'
-              label='Stripe'
-              id='Stripe'
-              name='paymentMethod'
-              value='Stripe'
-              onChange={(e) => setPaymentMethod(e.target.value)}
-            ></Form.Check> */}
+              aria-label='PayPal or Credit Card'
+            />
           </Col>
         </Form.Group>
 
-        <Button type='submit' variant='primary'>
+        <Button
+          type='submit'
+          variant='primary'
+          className='btn-block'
+          style={{
+            borderRadius: 'var(--ps-radius-sm)',
+            padding: 'var(--ps-space-1) var(--ps-space-2)',
+            fontWeight: 600,
+          }}
+        >
           Continue
         </Button>
       </Form>

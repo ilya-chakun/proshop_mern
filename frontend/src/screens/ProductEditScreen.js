@@ -9,6 +9,9 @@ import FormContainer from '../components/FormContainer'
 import { listProductDetails, updateProduct } from '../actions/productActions'
 import { PRODUCT_UPDATE_RESET } from '../constants/productConstants'
 
+/**
+ * Admin product edit form with design system tokens.
+ */
 const ProductEditScreen = ({ match, history }) => {
   const productId = match.params.id
 
@@ -97,11 +100,28 @@ const ProductEditScreen = ({ match, history }) => {
 
   return (
     <>
-      <Link to='/admin/productlist' className='btn btn-light my-3'>
+      <Link
+        to='/admin/productlist'
+        className='btn btn-outline-secondary'
+        style={{
+          borderRadius: 'var(--ps-radius-sm)',
+          marginBottom: 'var(--ps-space-3)',
+          fontWeight: 500,
+        }}
+      >
         Go Back
       </Link>
       <FormContainer>
-        <h1>Edit Product</h1>
+        <h1
+          style={{
+            fontSize: 'var(--ps-text-xl)',
+            fontWeight: 700,
+            marginBottom: 'var(--ps-space-3)',
+            textAlign: 'center',
+          }}
+        >
+          Edit Product
+        </h1>
         {loadingUpdate && <Loader />}
         {errorUpdate && <Message variant='danger'>{errorUpdate}</Message>}
         {loading ? (
@@ -110,84 +130,108 @@ const ProductEditScreen = ({ match, history }) => {
           <Message variant='danger'>{error}</Message>
         ) : (
           <Form onSubmit={submitHandler}>
-            <Form.Group controlId='name'>
-              <Form.Label>Name</Form.Label>
+            <Form.Group controlId='name' style={{ marginBottom: 'var(--ps-space-2)' }}>
+              <Form.Label style={{ fontWeight: 500 }}>Name</Form.Label>
               <Form.Control
                 type='name'
                 placeholder='Enter name'
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-              ></Form.Control>
+                aria-label='Product name'
+                style={{ borderRadius: 'var(--ps-radius-sm)' }}
+              />
             </Form.Group>
 
-            <Form.Group controlId='price'>
-              <Form.Label>Price</Form.Label>
+            <Form.Group controlId='price' style={{ marginBottom: 'var(--ps-space-2)' }}>
+              <Form.Label style={{ fontWeight: 500 }}>Price</Form.Label>
               <Form.Control
                 type='number'
                 placeholder='Enter price'
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-              ></Form.Control>
+                aria-label='Product price'
+                style={{ borderRadius: 'var(--ps-radius-sm)' }}
+              />
             </Form.Group>
 
-            <Form.Group controlId='image'>
-              <Form.Label>Image</Form.Label>
+            <Form.Group controlId='image' style={{ marginBottom: 'var(--ps-space-2)' }}>
+              <Form.Label style={{ fontWeight: 500 }}>Image</Form.Label>
               <Form.Control
                 type='text'
                 placeholder='Enter image url'
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
-              ></Form.Control>
+                aria-label='Image URL'
+                style={{ borderRadius: 'var(--ps-radius-sm)' }}
+              />
               <Form.File
                 id='image-file'
                 label='Choose File'
                 custom
                 onChange={uploadFileHandler}
-              ></Form.File>
+                style={{ marginTop: 'var(--ps-space-1)' }}
+              />
               {uploading && <Loader />}
             </Form.Group>
 
-            <Form.Group controlId='brand'>
-              <Form.Label>Brand</Form.Label>
+            <Form.Group controlId='brand' style={{ marginBottom: 'var(--ps-space-2)' }}>
+              <Form.Label style={{ fontWeight: 500 }}>Brand</Form.Label>
               <Form.Control
                 type='text'
                 placeholder='Enter brand'
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
-              ></Form.Control>
+                aria-label='Product brand'
+                style={{ borderRadius: 'var(--ps-radius-sm)' }}
+              />
             </Form.Group>
 
-            <Form.Group controlId='countInStock'>
-              <Form.Label>Count In Stock</Form.Label>
+            <Form.Group controlId='countInStock' style={{ marginBottom: 'var(--ps-space-2)' }}>
+              <Form.Label style={{ fontWeight: 500 }}>Count In Stock</Form.Label>
               <Form.Control
                 type='number'
                 placeholder='Enter countInStock'
                 value={countInStock}
                 onChange={(e) => setCountInStock(e.target.value)}
-              ></Form.Control>
+                aria-label='Count in stock'
+                style={{ borderRadius: 'var(--ps-radius-sm)' }}
+              />
             </Form.Group>
 
-            <Form.Group controlId='category'>
-              <Form.Label>Category</Form.Label>
+            <Form.Group controlId='category' style={{ marginBottom: 'var(--ps-space-2)' }}>
+              <Form.Label style={{ fontWeight: 500 }}>Category</Form.Label>
               <Form.Control
                 type='text'
                 placeholder='Enter category'
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-              ></Form.Control>
+                aria-label='Product category'
+                style={{ borderRadius: 'var(--ps-radius-sm)' }}
+              />
             </Form.Group>
 
-            <Form.Group controlId='description'>
-              <Form.Label>Description</Form.Label>
+            <Form.Group controlId='description' style={{ marginBottom: 'var(--ps-space-3)' }}>
+              <Form.Label style={{ fontWeight: 500 }}>Description</Form.Label>
               <Form.Control
                 type='text'
                 placeholder='Enter description'
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-              ></Form.Control>
+                aria-label='Product description'
+                style={{ borderRadius: 'var(--ps-radius-sm)' }}
+              />
             </Form.Group>
 
-            <Button type='submit' variant='primary'>
+            <Button
+              type='submit'
+              variant='primary'
+              className='btn-block'
+              style={{
+                borderRadius: 'var(--ps-radius-sm)',
+                padding: 'var(--ps-space-1) var(--ps-space-2)',
+                fontWeight: 600,
+              }}
+            >
               Update
             </Button>
           </Form>

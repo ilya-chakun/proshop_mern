@@ -12,6 +12,9 @@ import {
 } from '../actions/productActions'
 import { PRODUCT_CREATE_RESET } from '../constants/productConstants'
 
+/**
+ * Admin product list with design system tokens.
+ */
 const ProductListScreen = ({ history, match }) => {
   const pageNumber = match.params.pageNumber || 1
 
@@ -72,12 +75,20 @@ const ProductListScreen = ({ history, match }) => {
 
   return (
     <>
-      <Row className='align-items-center'>
+      <Row className='align-items-center' style={{ marginBottom: 'var(--ps-space-2)' }}>
         <Col>
           <h1>Products</h1>
         </Col>
         <Col className='text-right'>
-          <Button className='my-3' onClick={createProductHandler}>
+          <Button
+            onClick={createProductHandler}
+            aria-label='Create new product'
+            style={{
+              borderRadius: 'var(--ps-radius-sm)',
+              padding: 'var(--ps-space-1) var(--ps-space-2)',
+              fontWeight: 600,
+            }}
+          >
             <i className='fas fa-plus'></i> Create Product
           </Button>
         </Col>
@@ -92,7 +103,7 @@ const ProductListScreen = ({ history, match }) => {
         <Message variant='danger'>{error}</Message>
       ) : (
         <>
-          <Table striped bordered hover responsive className='table-sm'>
+          <Table striped hover responsive className='table-sm ps-table'>
             <thead>
               <tr>
                 <th>ID</th>
@@ -106,21 +117,35 @@ const ProductListScreen = ({ history, match }) => {
             <tbody>
               {products.map((product) => (
                 <tr key={product._id}>
-                  <td>{product._id}</td>
-                  <td>{product.name}</td>
-                  <td>${product.price}</td>
-                  <td>{product.category}</td>
-                  <td>{product.brand}</td>
+                  <td style={{ fontFamily: 'monospace', fontSize: 'var(--ps-text-xs)' }}>
+                    {product._id}
+                  </td>
+                  <td style={{ fontWeight: 500 }}>{product.name}</td>
+                  <td style={{ fontWeight: 600 }}>${product.price}</td>
+                  <td>
+                    <span className='ps-badge ps-badge-testing'>{product.category}</span>
+                  </td>
+                  <td style={{ color: 'var(--ps-text-muted)' }}>{product.brand}</td>
                   <td>
                     <LinkContainer to={`/admin/product/${product._id}/edit`}>
-                      <Button variant='light' className='btn-sm'>
+                      <Button
+                        variant='outline-primary'
+                        className='btn-sm'
+                        aria-label={`Edit ${product.name}`}
+                        style={{
+                          borderRadius: 'var(--ps-radius-sm)',
+                          marginRight: 'var(--ps-space-1)',
+                        }}
+                      >
                         <i className='fas fa-edit'></i>
                       </Button>
                     </LinkContainer>
                     <Button
-                      variant='danger'
+                      variant='outline-danger'
                       className='btn-sm'
                       onClick={() => deleteHandler(product._id)}
+                      aria-label={`Delete ${product.name}`}
+                      style={{ borderRadius: 'var(--ps-radius-sm)' }}
                     >
                       <i className='fas fa-trash'></i>
                     </Button>
