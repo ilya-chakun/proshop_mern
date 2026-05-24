@@ -60,6 +60,7 @@ services:
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
+      - ./frontend/.env:/app/.env
     stdin_open: true
     tty: true
     restart: unless-stopped
