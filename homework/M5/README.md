@@ -28,6 +28,27 @@ Two n8n workflows integrating M3 (MCP server) + M4 (Feature Dashboard) + M5 (AI 
                       └─────────────────┘       └──────────────────────┘
 ```
 
+## Стек
+
+- **n8n**: self-hosted Docker (n8n 2.21.7, `docker-compose.yml`)
+- **Chat Model**: Anthropic Claude `claude-haiku-4-5-20251001` — быстрый, дешёвый, отлично следует GCAO
+- **Storage логов**: JSON file (`logs.json`, volume mount в n8n контейнер)
+- **Telegram bot**: alerts bot (chat_id: `854243765`)
+
+## WF1 — Manual trigger
+
+- **Webhook URL**: `POST http://localhost:5678/webhook/feature-control`
+- **Auth**: `X-API-Key` (Header Auth credential в n8n)
+- **Что нового в Dashboard**: блок «Auto-Pilot Controls» с 3 кнопками (Запустить проверку / Тестовый режим / Откатить фичу), loading state, feedback alerts
+
+## WF2 — Scheduled monitor
+
+- **Threshold deactivate**: 5% error rate
+- **Threshold re-enable**: 1% error rate
+- **Logs storage**: `homework/M5/data/logs.json` (volume mount → `/opt/m5-logs/logs.json` в n8n)
+- **Sine period симулятора**: 300s (5 мин) по умолчанию
+- **Telegram chat**: `854243765`
+
 ## Files
 
 | File | Description |
@@ -109,18 +130,32 @@ curl -s -X POST http://localhost:5678/webhook/feature-control \
   -d '{"feature_id":"search_v2","action":"check"}'
 
 # Simulator with invalid requests
-python3 docs/m5/simulators/simulate_wf1.py --webhook-url http://localhost:5678/webhook \
+python3 homework/M5/simulators/simulate_wf1.py --webhook-url http://localhost:5678/webhook \
   --api-key <key> --include-invalid
 ```
 
 ### WF2
 ```bash
 # Start log generator
-python3 docs/m5/simulators/simulate_wf2.py --output docs/m5/data/logs.json --duration 600 --period 120
+python3 homework/M5/simulators/simulate_wf2.py --output homework/M5/data/logs.json --duration 600 --period 120
 
 # Watch n8n executions — WF2 triggers every minute
 # Telegram alerts appear on deactivate/reenable
 ```
+
+### Stress Test WF1
+
+10+ rapid requests (interval=2s) — all processed without errors:
+
+```bash
+python3 homework/M5/simulators/simulate_wf1.py \
+  --webhook-url http://localhost:5678/webhook \
+  --api-key <key> \
+  --duration 25 --interval 2
+```
+
+Results: 13 requests in 25s, all 200 OK, ~6-8s per request (AI Agent reasoning time).
+With `--include-invalid`: every 7th request gets 400 (Switch node rejects `-50` before AI Agent).
 
 ## Security Note
 
@@ -142,3 +177,21 @@ Both workflows use GCAO (Goal / Context / Action / Output) system prompts:
 | Logs storage | JSON file | Simplest option, volume mount into n8n container |
 | MCP connection | host.docker.internal | MCP server runs on host, n8n in Docker |
 | WF2 Memory | None | Cron is stateless — no conversation context needed |
+
+## Что было сложно
+
+1. **n8n task runner sandbox** — Code nodes в n8n 2.21.7 работают в изолированном sandbox без доступа к filesystem и `fetch()`. Пришлось читать logs.json через HTTP-запрос к backend API (`/api/feature-flags/logs`) вместо `fs.readFileSync()`.
+2. **Gemini rate limits** — начинали с Google Gemini (free tier), быстро упёрлись в 15 RPM. Мигрировали на Anthropic Claude `claude-haiku-4-5-20251001` — всё заработало стабильно.
+3. **Cross-node references в n8n** — `$json` в Switch/Code nodes не видит данные из других nodes. Нужен обязательный Merge Data Code node с паттерном `$('NodeName').first().json.field`.
+
+## Screencast
+
+TODO — будет записан отдельно (3-5 мин демо полного цикла).
+
+## Бонусы
+
+- [ ] HITL Wait-нода
+- [ ] Langfuse / LangSmith трейсинг
+- [ ] Multi-agent supervisor + worker
+- [ ] Deploy через n8n MCP
+- [ ] Postgres Chat Memory

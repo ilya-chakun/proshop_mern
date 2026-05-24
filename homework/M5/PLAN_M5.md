@@ -429,13 +429,98 @@ gh pr create --title "M5: n8n Agentic Workflows" --body "WF1 manual trigger + WF
 12. ✅ Симуляторы: simulate_wf1.py, simulate_wf2.py, logs.json
 13. ✅ Документация: README.md, lessons.md, test_results.md
 
-### Что НЕ сделано (блокер: Gemini 429 Rate Limit):
-1. ⬜ **Успешный прогон AI Agent в WF1** — Gemini free tier quota исчерпана. Нужно подождать сброса или сменить LLM.
-2. ⬜ **Тест WF2 end-to-end** — simulate_wf2.py → WF2 → toggle feature → Telegram alert
-3. ⬜ **Экспорт финальных workflow JSON** из n8n (текущие в docs/m5/ устарели — правки были через API)
-4. ⬜ **Скриншоты trace** — trace-wf1.png, trace-wf2-toggle.png (n8n UI или Playwright)
-5. ⬜ **Screencast** (3-5 мин демо)
-6. ⬜ **Коммит + PR** на ветку `feat/m5-agentic-workflows`
+### Что СДЕЛАНО (позже, после Gemini → Anthropic миграции):
+14. ✅ Chat Model заменён с Gemini → **Anthropic Claude** (`claude-haiku-4-5-20251001`)
+15. ✅ WF1 — все 8 тестов проходят (check, test, rollout, rollback, hallucination -50, missing fields, etc.)
+16. ✅ WF2 — end-to-end подтверждён: simulate_wf2.py → WF2 cron → AI Agent toggle → Telegram alert
+17. ✅ Скриншоты: `homework/M5/trace-wf1.png`, `homework/M5/trace-wf2-toggle.png`
+18. ✅ lessons 1-30, test_results.md, README.md закоммичены и запушены
+19. ✅ PR #33 создан на ветке `feat/m5-agentic-workflows`
+20. ✅ Начальный screencast: `homework/M5/video-recording/screencast.webm` (~35с, только браузер)
+21. ✅ 4 примера видео проанализированы, заметки сохранены в `homework/M5/video-recording/examples/*.notes.md`
+
+### Что ОСТАЛОСЬ сделать:
+
+#### 🔴 P0 — Блокеры сдачи
+
+1. ⬜ **Экспорт актуальных workflow JSON** из n8n
+   - Текущие `homework/M5/workflows/wf1-manual-trigger.json` и `wf2-scheduled-monitor.json` устарели (правки были через n8n API)
+   - Нужно: `GET /rest/workflows/{id}` → сохранить актуальные JSON
+   - WF1 ID: `jCiU37drHMGylcS3`, WF2 ID: `ZdsYUJjX5SdPtawd`
+
+2. ⬜ **Стресс-тест WF1** (из HOMEWORK A.6: "Стресс-теста: что если 10 команд подряд")
+   - Прогнать `simulate_wf1.py` с коротким `--interval 2 --duration 30`
+   - Убедиться что все запросы обработаны без 500 ошибок
+   - Задокументировать результат
+   - Показать в screencast (как в примере `wf1-stress-test-reload-UI-after-n8n-changed.mov`)
+
+3. ⬜ **Screencast (3-5 мин)** — основной артефакт сдачи
+   - Должен показать 6 обязательных сцен (HOMEWORK "Screencast"):
+     1. Dashboard → клик «Откатить фичу» → статус меняется
+     2. `simulate_wf1.py --include-invalid` → видно отказы на -50
+     3. `simulate_wf2.py` запущен фоном
+     4. n8n Executions → видно срабатывание WF2 cron
+     5. Telegram → алерты deactivate → re-enable (полный цикл)
+     6. Dashboard → статус фичи обновился автоматически
+   - Дополнительно (из примеров видео):
+     7. Стресс-тест (быстрые запросы + UI reload)
+     8. AI Agent autopilot sub-nodes (Canvas view)
+   - Формат: MP4 или WebM, <100MB для GitHub / или ссылка на Loom/YouTube
+
+4. ⬜ **Финальный коммит + push** после всех артефактов
+
+#### 🟡 P1 — Важное (чеклист задания)
+
+5. ⬜ **CC-агенты установка** (HOMEWORK D.2, чеклист)
+   - Установить `n8n-requirements-orchestrator.md` и `n8n-workflow-builder.md` в `~/.claude/agents/`
+   - Проверка: `ls ~/.claude/agents | grep n8n` → 2 файла
+   - Источник: `aidev-course-materials/M5/agents/` (нужно найти эти файлы)
+
+6. ⬜ **README.md — проверить на соответствие шаблону** (HOMEWORK "Шаблон README.md")
+   - Обязательные секции: Архитектура, Стек, WF1, WF2, Тест на галлюцинации, Как запустить, Что было сложно, Бонусы, Screencast
+   - Сравнить наш `homework/M5/README.md` с шаблоном и дополнить
+
+#### 🟢 P2 — Бонусы (не влияют на оценку)
+
+7. ⬜ HITL Wait-нода
+8. ⬜ Langfuse / LangSmith трейсинг
+9. ⬜ Multi-agent supervisor + worker
+10. ⬜ Deploy через n8n MCP
+11. ⬜ Postgres Chat Memory
+
+---
+
+## Phase 6: Видео — Screencast (НОВАЯ ФАЗА)
+
+### Подход к записи
+
+**Варианты:**
+- **A) Ручная запись** (OBS / QuickTime / Loom) — самый простой, 15-20 мин
+- **B) Playwright-автоматизация** — headless browser recording → WebM → конвертация в MP4
+- **C) Гибрид** — Playwright для browser-сцен + ручная запись терминала + склейка
+
+### Сценарий screencast (план по минутам)
+
+| Мин | Сцена | Что показать |
+|-----|-------|-------------|
+| 0:00-0:30 | Intro | Dashboard в браузере, список feature flags, объяснение архитектуры |
+| 0:30-1:15 | WF1 Manual | Клик «Откатить фичу» → ожидание → статус меняется → alert от агента |
+| 1:15-2:00 | WF1 Simulator | Терминал: `simulate_wf1.py --include-invalid` → видно отказы на -50 + успешные операции |
+| 2:00-2:30 | Стресс-тест | Быстрые запросы (interval=2s) → все обработаны → UI reload |
+| 2:30-3:15 | WF2 Monitor | n8n Executions → WF2 cron срабатывает → toggle видно в trace |
+| 3:15-3:45 | Telegram | Алерты: 🚨 деактивация → ✅ re-enable (полный цикл) |
+| 3:45-4:15 | Dashboard | Статус обновился автоматически после WF2 |
+| 4:15-4:30 | n8n Canvas | AI Agent sub-nodes: LLM, Tools, Output Parser |
+
+**Итого: ~4:30** — в рамках 3-5 мин.
+
+### Заметки из анализа примеров видео
+
+См. файлы `homework/M5/video-recording/examples/*.notes.md`:
+- `screencast.mp4.notes.md` — полный demo (золотой стандарт, ~3 мин)
+- `wf1-autopilots-components.notes.md` — AI Agent sub-nodes (1.5 мин)
+- `wf1-halucinations.notes.md` — защита от -50 (1.5 мин)
+- `wf1-stress-test-reload-UI-after-n8n-changed.notes.md` — стресс + UI reload (54с)
 
 ### Критические ID и ключи:
 - n8n URL: http://localhost:5678
