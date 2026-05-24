@@ -51,7 +51,7 @@ proshop_mern/
 │       ├── screens/    # Page-level components
 │       └── store.js    # Redux store configuration
 ├── uploads/            # User-uploaded product images
-├── docs/               # Homework reports and investigation logs
+├── homework/               # Homework reports and investigation logs
 ├── .env.example        # Safe placeholder environment variables
 ├── package.json        # Backend dependencies & dev scripts
 └── README.md           # This file
@@ -269,7 +269,7 @@ Ensure MongoDB is running and `MONGO_URI` is correct before running `npm run dat
 
 ## Homework Notes
 
-This fork is being prepared for an **AI-Driven Development** homework assignment. Commit history, documentation, and investigation logs in `docs/lessons/` reflect the learning process. See root `report.md` for the homework submission report.
+This fork is being prepared for an **AI-Driven Development** homework assignment. Commit history, documentation, and investigation logs in `homework/lessons/` reflect the learning process. See root `report.md` for the homework submission report.
 
 ## License
 

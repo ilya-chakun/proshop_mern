@@ -45,7 +45,7 @@ services:
     volumes:
       - ./backend:/app/backend
       - ./uploads:/app/uploads
-      - ./docs/m5/data:/opt/m5-logs:ro
+      - ./homework/m5/data:/opt/m5-logs:ro
     restart: unless-stopped
 
   frontend:
@@ -71,7 +71,7 @@ services:
       - '5678:5678'
     volumes:
       - n8n-data:/home/node/.n8n
-      - ./docs/m5/data:/data/logs
+      - ./homework/m5/data:/data/logs
     environment:
       - GENERIC_TIMEZONE=Europe/Minsk
       - N8N_SECURE_COOKIE=false

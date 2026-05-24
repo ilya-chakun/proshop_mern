@@ -2,8 +2,8 @@
   "search_v2": {
     "name": "New Search Algorithm",
     "description": "Replaces legacy regex-based keyword matching with a hybrid BM25 + TF-IDF ranking pipeline. Improves relevance for multi-word queries and handles common misspellings via fuzzy matching. Backend: new productController search path; index built on name, brand, category, description fields.",
-    "status": "Testing",
-    "traffic_percentage": 50,
+    "status": "Enabled",
+    "traffic_percentage": 0,
     "last_modified": "2026-05-24",
     "targeted_segments": [
       "beta_users",
@@ -50,9 +50,9 @@
   "save_for_later": {
     "name": "Save Items for Later",
     "description": "Adds a 'Save for Later' action on cart items. Saved items are persisted to the user's profile (MongoDB userModel extension) and visible in a separate section below the active cart. Encourages purchase intent without session abandonment. Requires authenticated user; disabled for guests.",
-    "status": "Disabled",
+    "status": "Testing",
     "traffic_percentage": 0,
-    "last_modified": "2026-02-28",
+    "last_modified": "2026-05-24",
     "targeted_segments": [
       "authenticated"
     ],

@@ -104,12 +104,12 @@ that flag may need to be added, but do not apply it blindly.
 1. **Inspect before editing.** Read relevant files, `package.json`, and existing patterns first.
 2. **Do not invent facts.** If unsure about a command or structure, verify from source.
 3. **Run the project** (`npm run dev`) to confirm changes work when possible.
-4. **Keep investigation logs** in `docs/lessons/` when debugging or researching.
+4. **Keep investigation logs** in `homework/lessons/` when debugging or researching.
 
 ## 8. Git / Branch / Commit Rules
 
 - Use **Conventional Commits**: `feat:`, `fix:`, `docs:`, `chore:`, etc.
-- Branch naming: `type/short-description` (e.g., `docs/ai-agent-rules`).
+- Branch naming: `type/short-description` (e.g., `homework/ai-agent-rules`).
 - Keep commits atomic and reviewable — this is a public homework fork.
 - Never commit `.env`, secrets, tokens, passwords, or private keys.
 
@@ -127,14 +127,14 @@ that flag may need to be added, but do not apply it blindly.
 - Prefer **explicit validation** and clear data contracts over implicit coercion.
 - Do **not** convert the project to TypeScript unless explicitly requested.
 - Do **not** introduce large rewrites or dependency upgrades.
-- Full standards: [`docs/coding-standards.md`](docs/coding-standards.md).
+- Full standards: [`homework/coding-standards.md`](homework/coding-standards.md).
 
 ## 11. Human-Written Rules (Not Inferable from Code)
 
 1. This project is a **public homework fork** — commits must be clean, well-described, and reviewable by other people.
 2. Keep documentation **beginner-friendly** so another developer can set up and run the project within ~30 minutes.
-3. Keep `report.md` at the repository root as the **main homework submission report**. Historical notes may stay in `docs/report.md`, but new submission logs should go to the root report.
-4. Keep AI work logs in `docs/lessons/` when a task involves investigation or debugging.
+3. Keep `report.md` at the repository root as the **main homework submission report**. Historical notes may stay in `homework/report.md`, but new submission logs should go to the root report.
+4. Keep AI work logs in `homework/lessons/` when a task involves investigation or debugging.
 5. Do not introduce dependency upgrades or large refactors unless they are directly required by a finding or fix.
 
 ## Searching project documentation (search-docs MCP)
