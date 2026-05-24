@@ -90,11 +90,27 @@ curl -X POST ... -d '{"feature_id":"search_v2","action":"destroy"}'
 ## WF2 — Scheduled Monitor
 
 WF2 активирован (active=true), Schedule Trigger каждую минуту.
-Исполнения видны в n8n Executions (status: success).
 
-WF2 pipeline: Schedule Trigger → Read & Analyze Logs (Code) → Get Feature Status (HTTP) → Merge Data → Decision → Set Decision (Reenable/Deactivate) → AI Agent → Telegram Send Message.
+### TEST 9: High error rate → AI Agent → Telegram ✅
+```
+Simulator: --baseline 0.06 --amplitude 0.12 --period 120 --rps 10
+5-min window: 2474 events, error_rate=0.065 (6.5%)
 
-**Статус:** Executions 80-82 — все `success`. WF2 работает по расписанию.
+Execution 121: success
+Path: Schedule Trigger → Read & Analyze Logs (HTTP) → Get Feature Status → Merge Data
+     → Decision (deactivate branch) → Set Decision Deactivate → AI Agent → Telegram Send Message
+
+AI Agent вызвал инструменты, сформировал отчёт и отправил в Telegram.
+```
+**Результат:** При error_rate > 5% WF2 корректно маршрутизирует через deactivate → AI Agent → Telegram.
+
+### TEST 10: Low error rate → Fallback (NoOp) ✅
+```
+Simulator stopped, error_rate=0, total_events=0
+
+Path: Schedule Trigger → Read & Analyze Logs → Decision → NoOp (Fallback)
+```
+**Результат:** При нулевом error rate WF2 корректно идёт в Fallback, не отправляя ложные алерты.
 
 ---
 
@@ -134,6 +150,25 @@ WF2 pipeline: Schedule Trigger → Read & Analyze Logs (Code) → Get Feature St
 - **Причина:** Бэкенд имел только GET-маршруты через MCP-сервер
 - **Fix:** Добавили POST `/api/feature-flags/state` и `/api/feature-flags/traffic` в `featureFlagsRoutes.js`
 
+### BUG 8: Code node не имеет доступа к filesystem (task runner sandbox)
+- **Симптом:** `require('node:fs').readFileSync('/data/logs/logs.json')` возвращал 0 events
+- **Причина:** n8n 2.21+ запускает Code ноды в изолированном sandbox (task runner), без доступа к filesystem контейнера
+- **Fix:** Заменили чтение файла на HTTP-запрос `this.helpers.httpRequest()` + добавили `GET /api/feature-flags/logs` эндпоинт
+
+### BUG 9: `fetch()` не определён в sandbox
+- **Симптом:** `fetch is not defined` в Code node
+- **Fix:** Использовали `this.helpers.httpRequest()` вместо `fetch()`
+
+### BUG 10: nodemon restart loop из-за bind mount
+- **Симптом:** 245 рестартов backend при монтировании логов в `/app/m5-logs`
+- **Причина:** Симулятор пишет 10 раз/сек → nodemon детектирует изменения → рестарт
+- **Fix:** Перенесли mount в `/opt/m5-logs:ro` (вне зоны наблюдения nodemon)
+
+### BUG 11: Merge Data получала features вместо log data
+- **Симптом:** error_rate всегда 0 в Decision, хотя API возвращал >5%
+- **Причина:** `$input.first().json` ссылался на Get Feature Status (features JSON), а не Read & Analyze Logs
+- **Fix:** Заменили на `$('Read & Analyze Logs').first().json`
+
 ---
 
 ## Резюме
@@ -148,6 +183,7 @@ WF2 pipeline: Schedule Trigger → Read & Analyze Logs (Code) → Get Feature St
 | Rollout 50% | traffic=50 | ✅ traffic_percentage=50 |
 | Missing feature_id | 400 reject | ✅ 400 |
 | Invalid action | 400 reject | ✅ 400 |
-| WF2 scheduled | executions success | ✅ 3 consecutive successes |
+| WF2 scheduled (high error) | AI Agent + Telegram | ✅ Decision→Deactivate→AI→Telegram |
+| WF2 scheduled (low error) | Fallback NoOp | ✅ No false alerts |
 
-**Все тесты проходят.** LLM: Anthropic Claude Haiku 4.5. Все Switch-валидации и AI Agent tool calls работают корректно.
+**Все тесты проходят.** LLM: Anthropic Claude Haiku 4.5. Все Switch-валидации, AI Agent tool calls и Telegram алерты работают корректно.

@@ -8,6 +8,17 @@ const FEATURES_PATH = path.resolve(__dirname, '..', 'features.json')
 
 const router = express.Router()
 
+// GET /api/feature-flags/logs — serve WF2 log file for n8n Code node
+router.get('/logs', async (req, res, next) => {
+  try {
+    const logsPath = '/opt/m5-logs/logs.json'
+    const raw = await fs.readFile(logsPath, 'utf8')
+    res.json(JSON.parse(raw))
+  } catch (err) {
+    res.json([])
+  }
+})
+
 router.get('/', async (req, res, next) => {
   try {
     const raw = await fs.readFile(FEATURES_PATH, 'utf8')

@@ -45,6 +45,7 @@ services:
     volumes:
       - ./backend:/app/backend
       - ./uploads:/app/uploads
+      - ./docs/m5/data:/opt/m5-logs:ro
     restart: unless-stopped
 
   frontend:

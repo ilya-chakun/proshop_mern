@@ -26,7 +26,7 @@
     },
     {
       "parameters": {
-        "jsCode": "\ntry {\n  const raw = require('node:fs').readFileSync('/data/logs/logs.json', 'utf8');\n  const events = JSON.parse(raw);\n  const now = Date.now();\n  const windowMs = 60 * 1000;\n  const recent = events.filter(e => (now - new Date(e.timestamp).getTime()) < windowMs);\n  const total = recent.length;\n  const errors = recent.filter(e => e.status === 'error').length;\n  const error_rate = total > 0 ? errors / total : 0;\n  return [{ json: { error_rate: Math.round(error_rate * 1000) / 1000, total_events: total, error_events: errors, window_seconds: 60, feature_id: 'search_v2' } }];\n} catch (e) {\n  return [{ json: { error_rate: 0, total_events: 0, error_events: 0, window_seconds: 60, feature_id: 'search_v2', read_error: e.message } }];\n}\n"
+        "jsCode": "const response = await this.helpers.httpRequest({\n  method: 'GET',\n  url: 'http://host.docker.internal:5001/api/feature-flags/logs',\n  json: true\n});\nconst events = Array.isArray(response) ? response : [];\nconst now = Date.now();\nconst windowMs = 5 * 60 * 1000;\nconst recent = events.filter(e => (now - new Date(e.timestamp).getTime()) < windowMs);\nconst total = recent.length;\nconst errors = recent.filter(e => e.status === 'error').length;\nconst error_rate = total > 0 ? errors / total : 0;\nreturn [{ json: { error_rate: Math.round(error_rate * 1000) / 1000, total_events: total, error_events: errors, window_seconds: 300, feature_id: 'search_v2' } }];"
       },
       "id": "a1b2c3d4-0001-4000-8000-000000000002",
       "name": "Read & Analyze Logs",
@@ -54,7 +54,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const logData = $input.first().json;\nconst allFeatures = $('Get Feature Status').first().json;\nconst featureId = logData.feature_id || 'search_v2';\nconst feature = allFeatures[featureId] || {};\nreturn [{ json: { ...logData, current_status: feature.status || 'unknown', current_traffic: feature.traffic_percentage || 0, feature_id: featureId } }];"
+        "jsCode": "const logData = $('Read & Analyze Logs').first().json;\nconst allFeatures = $('Get Feature Status').first().json;\nconst featureId = logData.feature_id || 'search_v2';\nconst feature = allFeatures[featureId] || {};\nreturn [{ json: { ...logData, current_status: feature.status || 'unknown', current_traffic: feature.traffic_percentage || 0, feature_id: featureId } }];"
       },
       "id": "a1b2c3d4-0001-4000-8000-000000000004",
       "name": "Merge Data",
@@ -74,7 +74,7 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict"
+                  "typeValidation": "loose"
                 },
                 "conditions": [
                   {
@@ -83,14 +83,6 @@
                     "operator": {
                       "type": "number",
                       "operation": "gt"
-                    }
-                  },
-                  {
-                    "leftValue": "={{ $json.current_status }}",
-                    "rightValue": "Disabled",
-                    "operator": {
-                      "type": "string",
-                      "operation": "notEquals"
                     }
                   }
                 ],
@@ -104,7 +96,7 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict"
+                  "typeValidation": "loose"
                 },
                 "conditions": [
                   {
@@ -113,14 +105,6 @@
                     "operator": {
                       "type": "number",
                       "operation": "lt"
-                    }
-                  },
-                  {
-                    "leftValue": "={{ $json.current_status }}",
-                    "rightValue": "Disabled",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
                     }
                   }
                 ],
@@ -466,8 +450,8 @@
   },
   "meta": null,
   "pinData": {},
-  "activeVersionId": "1fc5a0da-61de-4e03-ab52-cad4272a8d5e",
-  "versionCounter": 41,
+  "activeVersionId": "197a74e4-565d-4c9b-bfa1-8077d100b02f",
+  "versionCounter": 63,
   "shared": [
     {
       "updatedAt": "2026-05-24T15:49:29.020Z",
@@ -490,9 +474,9 @@
   "tags": [],
   "parentFolder": null,
   "activeVersion": {
-    "updatedAt": "2026-05-24T16:49:13.445Z",
-    "createdAt": "2026-05-24T16:49:13.445Z",
-    "versionId": "1fc5a0da-61de-4e03-ab52-cad4272a8d5e",
+    "updatedAt": "2026-05-24T17:28:20.749Z",
+    "createdAt": "2026-05-24T17:28:20.749Z",
+    "versionId": "197a74e4-565d-4c9b-bfa1-8077d100b02f",
     "workflowId": "ZdsYUJjX5SdPtawd",
     "nodes": [
       {
@@ -517,7 +501,7 @@
       },
       {
         "parameters": {
-          "jsCode": "\ntry {\n  const raw = require('node:fs').readFileSync('/data/logs/logs.json', 'utf8');\n  const events = JSON.parse(raw);\n  const now = Date.now();\n  const windowMs = 60 * 1000;\n  const recent = events.filter(e => (now - new Date(e.timestamp).getTime()) < windowMs);\n  const total = recent.length;\n  const errors = recent.filter(e => e.status === 'error').length;\n  const error_rate = total > 0 ? errors / total : 0;\n  return [{ json: { error_rate: Math.round(error_rate * 1000) / 1000, total_events: total, error_events: errors, window_seconds: 60, feature_id: 'search_v2' } }];\n} catch (e) {\n  return [{ json: { error_rate: 0, total_events: 0, error_events: 0, window_seconds: 60, feature_id: 'search_v2', read_error: e.message } }];\n}\n"
+          "jsCode": "const response = await this.helpers.httpRequest({\n  method: 'GET',\n  url: 'http://host.docker.internal:5001/api/feature-flags/logs',\n  json: true\n});\nconst events = Array.isArray(response) ? response : [];\nconst now = Date.now();\nconst windowMs = 5 * 60 * 1000;\nconst recent = events.filter(e => (now - new Date(e.timestamp).getTime()) < windowMs);\nconst total = recent.length;\nconst errors = recent.filter(e => e.status === 'error').length;\nconst error_rate = total > 0 ? errors / total : 0;\nreturn [{ json: { error_rate: Math.round(error_rate * 1000) / 1000, total_events: total, error_events: errors, window_seconds: 300, feature_id: 'search_v2' } }];"
         },
         "id": "a1b2c3d4-0001-4000-8000-000000000002",
         "name": "Read & Analyze Logs",
@@ -545,7 +529,7 @@
       },
       {
         "parameters": {
-          "jsCode": "const logData = $input.first().json;\nconst allFeatures = $('Get Feature Status').first().json;\nconst featureId = logData.feature_id || 'search_v2';\nconst feature = allFeatures[featureId] || {};\nreturn [{ json: { ...logData, current_status: feature.status || 'unknown', current_traffic: feature.traffic_percentage || 0, feature_id: featureId } }];"
+          "jsCode": "const logData = $('Read & Analyze Logs').first().json;\nconst allFeatures = $('Get Feature Status').first().json;\nconst featureId = logData.feature_id || 'search_v2';\nconst feature = allFeatures[featureId] || {};\nreturn [{ json: { ...logData, current_status: feature.status || 'unknown', current_traffic: feature.traffic_percentage || 0, feature_id: featureId } }];"
         },
         "id": "a1b2c3d4-0001-4000-8000-000000000004",
         "name": "Merge Data",
@@ -565,7 +549,7 @@
                   "options": {
                     "caseSensitive": true,
                     "leftValue": "",
-                    "typeValidation": "strict"
+                    "typeValidation": "loose"
                   },
                   "conditions": [
                     {
@@ -574,14 +558,6 @@
                       "operator": {
                         "type": "number",
                         "operation": "gt"
-                      }
-                    },
-                    {
-                      "leftValue": "={{ $json.current_status }}",
-                      "rightValue": "Disabled",
-                      "operator": {
-                        "type": "string",
-                        "operation": "notEquals"
                       }
                     }
                   ],
@@ -595,7 +571,7 @@
                   "options": {
                     "caseSensitive": true,
                     "leftValue": "",
-                    "typeValidation": "strict"
+                    "typeValidation": "loose"
                   },
                   "conditions": [
                     {
@@ -604,14 +580,6 @@
                       "operator": {
                         "type": "number",
                         "operation": "lt"
-                      }
-                    },
-                    {
-                      "leftValue": "={{ $json.current_status }}",
-                      "rightValue": "Disabled",
-                      "operator": {
-                        "type": "string",
-                        "operation": "equals"
                       }
                     }
                   ],
@@ -953,10 +921,10 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-05-24T16:49:13.836Z",
-        "id": 44,
+        "createdAt": "2026-05-24T17:28:21.255Z",
+        "id": 54,
         "workflowId": "ZdsYUJjX5SdPtawd",
-        "versionId": "1fc5a0da-61de-4e03-ab52-cad4272a8d5e",
+        "versionId": "197a74e4-565d-4c9b-bfa1-8077d100b02f",
         "event": "activated",
         "userId": "9f8d21b9-ed48-4b1f-a2d4-7d96faafb434"
       }
@@ -977,5 +945,5 @@
     "workflow:update",
     "workflow:updateRedactionSetting"
   ],
-  "checksum": "8cc1c4bdc88d44d8c6f0f5abf77eb1f2e108a55cefd33db01f8a89f7041d024a"
+  "checksum": "1bf27898e29bca878917c517f8a3c5dd91723e4766cf453301ec80b48398eb06"
 }

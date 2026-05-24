@@ -145,3 +145,38 @@
   6. AI Agent и Telegram Send Message никогда не выполняются.
 - **Решение:** Нужно перезапустить симулятор с error rate > 5% и дождаться, пока WF2 среагирует.
 - **Урок:** «Execution success» в n8n ≠ «полезная работа». Workflow может пройти Schedule → Code → Decision → Fallback и считается успешным, хотя бизнес-логика не сработала. Для мониторинга нужно проверять, какой именно output Decision выбрал.
+
+## 21. n8n Code node: `require('node:fs')` и task runner sandbox
+
+- **Проблема:** Code нода читала `/data/logs/logs.json` через `require('node:fs').readFileSync()` — `error_rate: 0, total_events: 0`, хотя файл был на месте.
+- **Причина:** n8n 2.21+ использует **task runner** — изолированный sandbox для Code нод. Sandbox не имеет доступа к файловой системе контейнера, даже если `NODE_FUNCTION_ALLOW_BUILTIN=*` установлен. `require('fs')` формально работает, но `/data/logs/logs.json` внутри sandbox — другой (пустой) файл.
+- **Диагностика:** `docker exec proshop-n8n node -e "require('fs').readFileSync('/data/logs/logs.json')"` работал (8.9% error rate), но Code нода видела 0 events. Ключевое отличие: `docker exec` работает в контексте контейнера, а Code нода — в sandbox'е task runner'а.
+- **Решение:** Заменил чтение файла на HTTP-запрос `this.helpers.httpRequest({ url: 'http://host.docker.internal:5001/api/feature-flags/logs' })`. Для этого добавили `GET /api/feature-flags/logs` эндпоинт в бэкенд.
+- **Урок:** В n8n 2.x Code ноды НЕ имеют доступа к filesystem контейнера. Для чтения данных — использовать HTTP запросы или встроенные n8n хелперы. `fetch()` тоже недоступен (не определён в sandbox), нужно `this.helpers.httpRequest()`.
+
+## 22. Code node: `fetch()` не определён в sandbox
+
+- **Проблема:** Заменив `require('fs')` на `await fetch(url)`, получили `fetch is not defined`.
+- **Причина:** Task runner sandbox n8n не предоставляет глобальный `fetch()`.
+- **Решение:** Использовали `this.helpers.httpRequest()` — встроенный хелпер n8n, доступный в Code нодах.
+- **Урок:** В n8n Code node доступны: `this.helpers.httpRequest()`, `$input`, `$('NodeName')`, но НЕ `fetch()`, `axios`, `require('http')`.
+
+## 23. Docker bind mount + nodemon = restart loop
+
+- **Проблема:** После добавления `./docs/m5/data:/app/m5-logs:ro` в backend volumes, nodemon входил в бесконечный цикл перезапуска (245 рестартов).
+- **Причина:** Nodemon по умолчанию отслеживает `*.*` в рабочей директории `/app`. Симулятор пишет в `logs.json` 10 раз в секунду → bind mount синхронизирует изменения в `/app/m5-logs/logs.json` → nodemon детектирует изменение и рестартит → цикл.
+- **Решение:** Перенесли mount за пределы `/app`: `./docs/m5/data:/opt/m5-logs:ro`. Nodemon не отслеживает `/opt`.
+- **Урок:** Никогда не монтировать часто обновляемые файлы в директорию, которую отслеживает nodemon/webpack/file watcher.
+
+## 24. Merge Data: `$input.first()` vs `$('NodeName').first()`
+
+- **Проблема:** Decision нода получала `error_rate: 0` даже при работающем симуляторе и корректном HTTP-эндпоинте.
+- **Причина:** Merge Data Code нода использовала `$input.first().json` для получения данных логов, но `$input` ссылается на **непосредственный предыдущий нод** в цепочке (Get Feature Status), а НЕ на Read & Analyze Logs. `logData` содержало объект features (`{search_v2: {...}}`), а не данные анализа логов.
+- **Решение:** Заменили `$input.first().json` на `$('Read & Analyze Logs').first().json` — явная ссылка на конкретный нод по имени.
+- **Урок:** В n8n Code нодах с несколькими входами: `$input` = последний подключённый нод. Для конкретного нода — всегда использовать `$('NodeName').first().json`. Это критически важно когда к Code ноде подключены данные из разных веток.
+
+## 25. Decision (Switch v3) typeValidation
+
+- **Проблема:** Decision нода с `typeValidation: "strict"` не маршрутизировала данные, хотя условия выглядели корректными.
+- **Диагностика:** Даже с `typeValidation: "loose"` и упрощёнными условиями (только `error_rate > 0.05`) — всё равно Fallback. Оказалось, что проблема была не в Decision, а в входных данных (Merge Data передавала features вместо log analysis).
+- **Урок:** При отладке Switch/If нод — сначала проверять, что входные данные действительно содержат ожидаемые поля. Execution trace показывает индексированные данные, что затрудняет отладку.
