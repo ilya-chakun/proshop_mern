@@ -22,17 +22,17 @@ API key is read from `frontend/.env` (`REACT_APP_N8N_API_KEY`), or pass via `--a
 # Basic run (2 min, 10s interval, check→test→rollout→rollback cycle)
 python3 simulate_wf1.py \
   --webhook-url http://localhost:5678/webhook \
-  --api-key $(grep REACT_APP_N8N_API_KEY ../../frontend/.env | cut -d= -f2-) \
+  --api-key $(grep REACT_APP_N8N_API_KEY ../../../frontend/.env | cut -d= -f2-) \
   --duration 120 --interval 10
 
 # With hallucination test (every 7th request sends traffic_percentage=-50)
 python3 simulate_wf1.py \
   --webhook-url http://localhost:5678/webhook \
-  --api-key $(grep REACT_APP_N8N_API_KEY ../../frontend/.env | cut -d= -f2-) \
+  --api-key $(grep REACT_APP_N8N_API_KEY ../../../frontend/.env | cut -d= -f2-) \
   --include-invalid
 
 # Or use env var
-export N8N_API_KEY=$(grep REACT_APP_N8N_API_KEY ../../frontend/.env | cut -d= -f2-)
+export N8N_API_KEY=$(grep REACT_APP_N8N_API_KEY ../../../frontend/.env | cut -d= -f2-)
 python3 simulate_wf1.py --webhook-url http://localhost:5678/webhook
 
 # Full options
