@@ -186,7 +186,7 @@ Both workflows use GCAO (Goal / Context / Action / Output) system prompts:
 
 ## Screencast
 
-3 видео (~4:20 суммарно):
+3 видео (~4:20 суммарно), записаны через **Playwright headless** (WebM → ffmpeg → MP4), 1280×720:
 
 | # | Файл | Содержание | Длительность |
 |---|------|-----------|-------------|
