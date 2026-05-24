@@ -48,7 +48,7 @@ python3 simulate_wf2.py --help
 
 ## Stress Test
 
-One command, no arguments needed (API key and URL are built-in defaults):
+One command, no arguments needed. API key is read automatically from `frontend/.env`:
 
 ```bash
 ./stress_test_wf1.sh
@@ -58,6 +58,12 @@ With hallucination payloads (`traffic_percentage=-50`):
 
 ```bash
 ./stress_test_wf1.sh --include-invalid
+```
+
+You can also override via env var:
+
+```bash
+N8N_API_KEY=your-key ./stress_test_wf1.sh
 ```
 
 ### Expected results
