@@ -203,9 +203,9 @@
   "admin_advanced_filters": {
     "name": "Advanced Order and Product Filters in Admin",
     "description": "Extends admin list screens with multi-criteria filters: order status, date range, payment method, delivery status, price range, stock level. Filters are applied client-side with a debounced API call. Addresses the current limitation where admins can only search by keyword across the full list.",
-    "status": "Testing",
-    "traffic_percentage": 100,
-    "last_modified": "2026-04-15",
+    "status": "Disabled",
+    "traffic_percentage": 0,
+    "last_modified": "2026-05-24",
     "targeted_segments": [
       "admin"
     ],
