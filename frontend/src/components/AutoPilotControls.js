@@ -1,15 +1,15 @@
 import React, { useState } from 'react'
-import { Card, Button, Alert, Spinner } from 'react-bootstrap'
+import { Button, Spinner, Alert } from 'react-bootstrap'
 
 const N8N_URL = process.env.REACT_APP_N8N_WEBHOOK_URL
 const N8N_API_KEY = process.env.REACT_APP_N8N_API_KEY
 
 /**
- * Auto-Pilot Controls for a selected feature flag.
- * Sends commands to n8n WF1 webhook and displays agent feedback.
+ * Inline Auto-Pilot controls rendered inside each feature table row.
+ * Compact button group + inline feedback alert.
  *
  * @param {object} props
- * @param {object} props.feature - Feature object with key, name, status fields.
+ * @param {object} props.feature - Feature object with key, status, traffic_percentage.
  * @param {function} props.onUpdate - Callback after successful agent operation.
  */
 const AutoPilotControls = ({ feature, onUpdate }) => {
@@ -55,71 +55,45 @@ const AutoPilotControls = ({ feature, onUpdate }) => {
     }
   }
 
-  if (!feature) {
-    return null
-  }
+  if (!feature) return null
+
+  const btn = (action, label, variant, extras = {}) => (
+    <Button
+      variant={variant}
+      size='sm'
+      className='ps-autopilot-btn'
+      onClick={(e) => {
+        e.stopPropagation()
+        callAutoPilot(action, extras)
+      }}
+      disabled={loading !== null}
+    >
+      {loading === action ? (
+        <Spinner as='span' animation='border' size='sm' />
+      ) : (
+        label
+      )}
+    </Button>
+  )
 
   return (
-    <Card className='mt-3'>
-      <Card.Body>
-        <Card.Title>
-          Auto-Pilot Controls:{' '}
-          <code>{feature.key}</code>
-        </Card.Title>
-
-        <div className='d-flex' style={{ gap: '8px', flexWrap: 'wrap' }}>
-          <Button
-            variant='info'
-            size='sm'
-            onClick={() => callAutoPilot('check')}
-            disabled={loading !== null}
-          >
-            {loading === 'check' ? (
-              <><Spinner as='span' animation='border' size='sm' /> Checking...</>
-            ) : (
-              'Run Check'
-            )}
-          </Button>
-
-          <Button
-            variant='warning'
-            size='sm'
-            onClick={() => callAutoPilot('test', { target_state: 'Testing' })}
-            disabled={loading !== null}
-          >
-            {loading === 'test' ? (
-              <><Spinner as='span' animation='border' size='sm' /> Enabling...</>
-            ) : (
-              'Test Mode'
-            )}
-          </Button>
-
-          <Button
-            variant='danger'
-            size='sm'
-            onClick={() => callAutoPilot('rollback', { target_state: 'Disabled' })}
-            disabled={loading !== null}
-          >
-            {loading === 'rollback' ? (
-              <><Spinner as='span' animation='border' size='sm' /> Rolling back...</>
-            ) : (
-              'Rollback Feature'
-            )}
-          </Button>
-        </div>
-
-        {feedback && (
-          <Alert
-            variant={feedback.type}
-            className='mt-2 mb-0'
-            dismissible
-            onClose={() => setFeedback(null)}
-          >
-            {feedback.message}
-          </Alert>
-        )}
-      </Card.Body>
-    </Card>
+    <div className='ps-autopilot-inline'>
+      <div className='ps-autopilot-buttons'>
+        {btn('check', '🔍 Check', 'outline-info')}
+        {btn('test', '🧪 Test', 'outline-warning', { target_state: 'Testing' })}
+        {btn('rollback', '⛔ Off', 'outline-danger', { target_state: 'Disabled' })}
+      </div>
+      {feedback && (
+        <Alert
+          variant={feedback.type}
+          className='ps-autopilot-feedback'
+          dismissible
+          onClose={() => setFeedback(null)}
+        >
+          {feedback.message}
+        </Alert>
+      )}
+    </div>
   )
 }
 

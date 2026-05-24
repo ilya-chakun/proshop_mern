@@ -64,8 +64,6 @@ const FeatureDashboardScreen = ({ history }) => {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
-  const [selectedFeature, setSelectedFeature] = useState(null)
-  const [autoSelected, setAutoSelected] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [activityLog, setActivityLog] = useState([])
   const [changedKeys, setChangedKeys] = useState({})
@@ -146,14 +144,6 @@ const FeatureDashboardScreen = ({ history }) => {
         .sort((a, b) => a.key.localeCompare(b.key)),
     [features]
   )
-
-  /* Auto-select first feature for Auto-Pilot */
-  useEffect(() => {
-    if (!autoSelected && rows.length > 0 && !selectedFeature) {
-      setSelectedFeature(rows[0])
-      setAutoSelected(true)
-    }
-  }, [rows, autoSelected, selectedFeature])
 
   const filteredRows = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -244,8 +234,7 @@ const FeatureDashboardScreen = ({ history }) => {
         <Col>
           <h1 style={{ marginBottom: 4 }}>🚩 Feature Flag Dashboard</h1>
           <p style={{ color: 'var(--ps-text-muted)', margin: 0, fontSize: 14 }}>
-            Manage feature flags with AI-powered Auto-Pilot&nbsp;
-            <span style={{ opacity: 0.6 }}>(n8n + Claude Haiku)</span>
+            Manage feature flags with AI-powered Auto-Pilot
           </p>
         </Col>
         <Col xs='auto' className='d-flex align-items-center' style={{ gap: 8 }}>
@@ -332,16 +321,17 @@ const FeatureDashboardScreen = ({ history }) => {
       <Table className='ps-table' responsive>
         <thead>
           <tr>
-            <th style={{ width: '45%' }}>Feature</th>
+            <th style={{ width: '35%' }}>Feature</th>
             <th>Status</th>
             <th>Traffic</th>
+            <th>🤖 AI</th>
             <th>Modified</th>
           </tr>
         </thead>
         <tbody>
           {pagedRows.length === 0 ? (
             <tr>
-              <td colSpan='4'>
+              <td colSpan='5'>
                 <div className='ps-empty-state'>
                   <p>No features match the current filters.</p>
                   <Button variant='link' onClick={resetFilters}>Reset filters</Button>
@@ -355,13 +345,10 @@ const FeatureDashboardScreen = ({ history }) => {
                 trafficOverrides[feature.key] !== undefined
                   ? trafficOverrides[feature.key]
                   : feature.traffic_percentage
-              const isSelected = selectedFeature && selectedFeature.key === feature.key
-
               return (
                 <tr
                   key={feature.key}
-                  className={`${isSelected ? 'ps-row-selected' : ''} ${changedKeys[feature.key] ? 'ps-row-flash' : ''}`}
-                  onClick={() => setSelectedFeature(feature)}
+                  className={changedKeys[feature.key] ? 'ps-row-flash' : ''}
                   style={{
                     cursor: 'pointer',
                     borderLeft: `4px solid ${rowBorderColor(effectiveStatus)}`,
@@ -447,6 +434,21 @@ const FeatureDashboardScreen = ({ history }) => {
                     />
                   </td>
 
+                  {/* AI Auto-Pilot */}
+                  <td onClick={(e) => e.stopPropagation()} style={{ minWidth: 140 }}>
+                    <AutoPilotControls
+                      feature={feature}
+                      onUpdate={(result) => {
+                        addActivity({
+                          time: new Date().toLocaleTimeString(),
+                          feature: feature.key,
+                          message: typeof result === 'string' ? result : 'Action completed',
+                        })
+                        loadFeatures()
+                      }}
+                    />
+                  </td>
+
                   {/* Last modified */}
                   <td style={{ fontSize: 12, color: 'var(--ps-text-muted)', whiteSpace: 'nowrap' }}>
                     {feature.last_modified}
@@ -484,21 +486,6 @@ const FeatureDashboardScreen = ({ history }) => {
             />
           </Pagination>
         </div>
-      )}
-
-      {/* ── Auto-Pilot Controls ──────────────────── */}
-      {selectedFeature && (
-        <AutoPilotControls
-          feature={selectedFeature}
-          onUpdate={(result) => {
-            addActivity({
-              time: new Date().toLocaleTimeString(),
-              feature: selectedFeature.key,
-              message: typeof result === 'string' ? result : 'Action completed',
-            })
-            loadFeatures()
-          }}
-        />
       )}
 
       {/* ── Activity Feed ────────────────────────── */}
