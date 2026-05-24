@@ -173,6 +173,20 @@ def scene_telegram(page, playwright_obj):
                 # Wait for chat messages to load
                 wait(4, "waiting for messages to load")
 
+                # Hide left sidebar (chat list) to only show the bot conversation
+                tg_page.evaluate("""
+                  const sidebar = document.querySelector('#LeftColumn') ||
+                                  document.querySelector('.LeftColumn') ||
+                                  document.querySelector('[class*="LeftColumn"]');
+                  if (sidebar) sidebar.style.display = 'none';
+                  // Make middle column full width
+                  const middle = document.querySelector('#MiddleColumn') ||
+                                 document.querySelector('.MiddleColumn') ||
+                                 document.querySelector('[class*="MiddleColumn"]');
+                  if (middle) { middle.style.flex = '1'; middle.style.maxWidth = '100%'; }
+                """)
+                wait(1, "hid sidebar")
+
                 # Scroll UP first to show earlier messages (deactivate/reenable)
                 tg_page.evaluate("""
                   const containers = [
@@ -208,48 +222,48 @@ def scene_telegram(page, playwright_obj):
                 tg_browser.close()
 
                 if os.path.getsize(tg_screenshot) < 10000:
-                print("  [WARN] Screenshot too small — fallback")
-                use_fallback = True
-            else:
-                # Show first screenshot (older messages with deactivate/reenable)
-                with open(tg_screenshot1, "rb") as f:
-                    img_b64_1 = base64.b64encode(f.read()).decode()
+                    print("  [WARN] Screenshot too small — fallback")
+                    use_fallback = True
+                else:
+                    # Show first screenshot (older messages with deactivate/reenable)
+                    with open(tg_screenshot1, "rb") as f:
+                        img_b64_1 = base64.b64encode(f.read()).decode()
 
-                page.set_content(f"""
-                <html><head><style>
-                  body {{ margin: 0; background: #17212b; display: flex; flex-direction: column;
-                         align-items: center; justify-content: center; height: 100vh; }}
-                  h1 {{ color: #64b5ef; font-family: -apple-system, sans-serif; margin-bottom: 10px; }}
-                  .note {{ color: #8b949e; font-size: 14px; margin-bottom: 15px; font-family: sans-serif; }}
-                  img {{ max-height: 85vh; max-width: 95vw; border-radius: 12px;
-                         box-shadow: 0 4px 24px rgba(0,0,0,0.5); }}
-                </style></head><body>
-                <h1>📱 Telegram Bot — @proshop_m5_alerts_bot</h1>
-                <div class="note">🚨 deactivate → ✅ reenable — Real AI Agent alerts via n8n</div>
-                <img src="data:image/png;base64,{img_b64_1}" />
-                </body></html>
-                """)
-                wait(6, "showing older Telegram messages")
+                    page.set_content(f"""
+                    <html><head><style>
+                      body {{ margin: 0; background: #17212b; display: flex; flex-direction: column;
+                             align-items: center; justify-content: center; height: 100vh; }}
+                      h1 {{ color: #64b5ef; font-family: -apple-system, sans-serif; margin-bottom: 10px; }}
+                      .note {{ color: #8b949e; font-size: 14px; margin-bottom: 15px; font-family: sans-serif; }}
+                      img {{ max-height: 85vh; max-width: 95vw; border-radius: 12px;
+                             box-shadow: 0 4px 24px rgba(0,0,0,0.5); }}
+                    </style></head><body>
+                    <h1>📱 Telegram Bot — @proshop_m5_alerts_bot</h1>
+                    <div class="note">🚨 deactivate → ✅ reenable — Real AI Agent alerts via n8n</div>
+                    <img src="data:image/png;base64,{img_b64_1}" />
+                    </body></html>
+                    """)
+                    wait(6, "showing older Telegram messages")
 
-                # Show second screenshot (latest messages)
-                with open(tg_screenshot, "rb") as f:
-                    img_b64_2 = base64.b64encode(f.read()).decode()
+                    # Show second screenshot (latest messages)
+                    with open(tg_screenshot, "rb") as f:
+                        img_b64_2 = base64.b64encode(f.read()).decode()
 
-                page.set_content(f"""
-                <html><head><style>
-                  body {{ margin: 0; background: #17212b; display: flex; flex-direction: column;
-                         align-items: center; justify-content: center; height: 100vh; }}
-                  h1 {{ color: #64b5ef; font-family: -apple-system, sans-serif; margin-bottom: 10px; }}
-                  .note {{ color: #8b949e; font-size: 14px; margin-bottom: 15px; font-family: sans-serif; }}
-                  img {{ max-height: 85vh; max-width: 95vw; border-radius: 12px;
-                         box-shadow: 0 4px 24px rgba(0,0,0,0.5); }}
-                </style></head><body>
-                <h1>📱 Telegram Bot — Latest Messages</h1>
-                <div class="note">Continuous monitoring: error_rate, state changes, JSON payloads</div>
-                <img src="data:image/png;base64,{img_b64_2}" />
-                </body></html>
-                """)
-                wait(6, "showing latest Telegram messages")
+                    page.set_content(f"""
+                    <html><head><style>
+                      body {{ margin: 0; background: #17212b; display: flex; flex-direction: column;
+                             align-items: center; justify-content: center; height: 100vh; }}
+                      h1 {{ color: #64b5ef; font-family: -apple-system, sans-serif; margin-bottom: 10px; }}
+                      .note {{ color: #8b949e; font-size: 14px; margin-bottom: 15px; font-family: sans-serif; }}
+                      img {{ max-height: 85vh; max-width: 95vw; border-radius: 12px;
+                             box-shadow: 0 4px 24px rgba(0,0,0,0.5); }}
+                    </style></head><body>
+                    <h1>📱 Telegram Bot — Latest Messages</h1>
+                    <div class="note">Continuous monitoring: error_rate, state changes, JSON payloads</div>
+                    <img src="data:image/png;base64,{img_b64_2}" />
+                    </body></html>
+                    """)
+                    wait(6, "showing latest Telegram messages")
     except Exception as e:
         print(f"  [WARN] Telegram Web failed: {e}")
         use_fallback = True

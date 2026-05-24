@@ -39,7 +39,7 @@ Two n8n workflows integrating M3 (MCP server) + M4 (Feature Dashboard) + M5 (AI 
 
 - **Webhook URL**: `POST http://localhost:5678/webhook/feature-control`
 - **Auth**: `X-API-Key` (Header Auth credential в n8n)
-- **Что нового в Dashboard**: блок «Auto-Pilot Controls» с 3 кнопками (Запустить проверку / Тестовый режим / Откатить фичу), loading state, feedback alerts
+- **Что нового в Dashboard**: inline Auto-Pilot кнопки (🔍 Check / 🧪 Test / ⛔ Off) в каждой строке таблицы, live auto-refresh каждые 3s, change detection flash, activity log, pagination, search + status filter
 
 ## WF2 — Scheduled monitor
 
@@ -62,7 +62,7 @@ Two n8n workflows integrating M3 (MCP server) + M4 (Feature Dashboard) + M5 (AI 
 | `test_results.md` | Test results with pass/fail |
 | `trace-wf1.png` | Screenshot of WF1 execution trace |
 | `trace-wf2-toggle.png` | Screenshot of WF2 toggle execution |
-| `screencast.mp4` | 3-5 min demo of full cycle |
+| `screencast.mp4` | 3 видео демо полного цикла (see video-recording/) |
 
 ## Setup
 
@@ -186,7 +186,21 @@ Both workflows use GCAO (Goal / Context / Action / Output) system prompts:
 
 ## Screencast
 
-TODO — будет записан отдельно (3-5 мин демо полного цикла).
+3 видео (~4:20 суммарно):
+
+| # | Файл | Содержание | Длительность |
+|---|------|-----------|-------------|
+| 1 | `video-recording/video1_dashboard_wf1.mp4` | Dashboard + inline Auto-Pilot + WF1 canvas + стресс-тест | 2:08 |
+| 2 | `video-recording/video2_wf2_telegram.mp4` | WF2 canvas + executions + Telegram алерты | 1:46 |
+| 3 | `video-recording/video3_results.mp4` | Dashboard после WF2 + logs.json + финальный слайд | 0:29 |
+
+Покрытие:
+1. ✅ Клик «⛔ Off» → состояние меняется
+2. ✅ `simulate_wf1.py --include-invalid` → видно отказы на `-50`
+3. ✅ `simulate_wf2.py` запущен фоном, данные видны
+4. ✅ n8n executions — WF2 cron срабатывает
+5. ✅ Telegram: deactivate → re-enable → deactivate (полный цикл)
+6. ✅ Dashboard статус обновляется автоматически
 
 ## CC-агенты
 

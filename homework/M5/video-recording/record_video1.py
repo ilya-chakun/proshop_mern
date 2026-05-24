@@ -71,14 +71,17 @@ def scene_dashboard(page):
     page.evaluate("window.scrollTo(0, 0)")
     wait(3, "feature table")
 
-    page.evaluate("document.querySelector('.auto-pilot-controls')?.scrollIntoView({behavior:'smooth'})")
-    wait(3, "auto-pilot controls")
-
-    safe_click(page, 'button:has-text("Запустить проверку")', timeout=3000)
+    # Click 🔍 Check on first feature row (inline Auto-Pilot button)
+    safe_click(page, '.ps-autopilot-btn:has-text("Check")', timeout=3000)
     wait(8, "AI Agent check")
     wait(3, "result")
 
-    safe_click(page, 'button:has-text("Откатить фичу")', timeout=3000)
+    # Dismiss feedback alert if shown
+    safe_click(page, '.ps-autopilot-feedback .btn-close', timeout=2000)
+    wait(1)
+
+    # Click ⛔ Off on first feature row (rollback)
+    safe_click(page, '.ps-autopilot-btn:has-text("Off")', timeout=3000)
     wait(8, "AI Agent rollback")
     wait(3, "result")
 
