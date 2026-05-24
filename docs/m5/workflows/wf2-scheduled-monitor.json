@@ -142,7 +142,8 @@
         },
         "options": {
           "includeBinary": false
-        }
+        },
+        "include": "all"
       },
       "id": "a1b2c3d4-0001-4000-8000-000000000006",
       "name": "Set Decision Deactivate",
@@ -167,7 +168,8 @@
         },
         "options": {
           "includeBinary": false
-        }
+        },
+        "include": "all"
       },
       "id": "a1b2c3d4-0001-4000-8000-000000000007",
       "name": "Set Decision Reenable",
@@ -185,7 +187,7 @@
           "systemMessage": "=Goal:\n\u0417\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0438\u043d\u0446\u0438\u0434\u0435\u043d\u0442 \u0438\u043b\u0438 recovery \u0434\u043b\u044f feature {{$json.feature_id}}.\nDecision \u0438\u0437 upstream: {{$json.decision}} (deactivate | reenable).\n\nContext:\n- Decision \u0443\u0436\u0435 \u043f\u043e\u0441\u0447\u0438\u0442\u0430\u043d upstream (\u0432 Switch-\u043d\u043e\u0434\u0435) \u2014 \u0442\u0432\u043e\u044f \u0437\u0430\u0434\u0430\u0447\u0430 \u0432\u044b\u043f\u043e\u043b\u043d\u0438\u0442\u044c \u0440\u0435\u0448\u0435\u043d\u0438\u0435 \u0447\u0435\u0440\u0435\u0437 MCP.\n- Available tools: get_feature_info, set_feature_state.\n- \u041d\u0415 \u043f\u0440\u0438\u043d\u0438\u043c\u0430\u0439 \u0440\u0435\u0448\u0435\u043d\u0438\u0435 \u0441\u0430\u043c\u043e\u0441\u0442\u043e\u044f\u0442\u0435\u043b\u044c\u043d\u043e: \u0441\u043b\u0435\u0434\u0443\u0439 decision \u0438\u0437 payload.\n\nAction:\n1. \u0412\u044b\u0437\u043e\u0432\u0438 get_feature_info \u0434\u043b\u044f \u0430\u043a\u0442\u0443\u0430\u043b\u044c\u043d\u043e\u0433\u043e state.\n2. \u0415\u0441\u043b\u0438 decision=\"deactivate\": \u043f\u0440\u043e\u0432\u0435\u0440\u044c \u0447\u0442\u043e status != \"Disabled\" \u2192 set_feature_state(\"Disabled\") \u2192 verify.\n3. \u0415\u0441\u043b\u0438 decision=\"reenable\": \u043f\u0440\u043e\u0432\u0435\u0440\u044c \u0447\u0442\u043e status == \"Disabled\" \u2192 set_feature_state(\"Enabled\") \u2192 verify.\n4. \u0421\u0444\u043e\u0440\u043c\u0438\u0440\u0443\u0439 alert_message \u0434\u043b\u044f Telegram.\n\nOutput:\nJSON: { action_taken, previous_state, new_state, alert_message, error_rate_percent, threshold_used, reason }\n\nConstraints:\n- \u041d\u0415 \u0432\u044b\u0437\u044b\u0432\u0430\u0439 set_feature_state \u0435\u0441\u043b\u0438 state \u0443\u0436\u0435 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u0435\u0442 \u0446\u0435\u043b\u0435\u0432\u043e\u043c\u0443.\n- alert_message \u043d\u0430 \u0440\u0443\u0441\u0441\u043a\u043e\u043c: \ud83d\udea8 \u0434\u043b\u044f deactivate, \u2705 \u0434\u043b\u044f reenable."
         },
         "promptType": "define",
-        "text": "=Feature: {{$json.feature_id}}\nDecision: {{$json.decision}}\nError rate: {{$json.error_rate}}\nCurrent status: {{$json.current_status}}\nCurrent traffic: {{$json.current_traffic}}%\nTotal events: {{$json.total_events}}\nError events: {{$json.error_events}}"
+        "text": "=EXECUTE IMMEDIATELY. NO QUESTIONS.\n\nFEATURE: {{ $('Merge Data').first().json.feature_id }}\nDECISION: {{ $json.decision }}\nERROR RATE: {{ $('Merge Data').first().json.error_rate }}\nSTATUS: {{ $('Merge Data').first().json.current_status }}\nTRAFFIC: {{ $('Merge Data').first().json.current_traffic }}%\nTOTAL EVENTS: {{ $('Merge Data').first().json.total_events }}\nERROR EVENTS: {{ $('Merge Data').first().json.error_events }}\n\nRULES:\n1. Act on EXACTLY the feature above. Do NOT pick another.\n2. If DECISION=deactivate: call set_feature_state(feature_name=the feature above, state=\"Disabled\").\n3. If DECISION=reenable: call set_feature_state(feature_name=the feature above, state=\"Testing\").\n4. Respond with JSON: action_taken, feature_name, error_rate, alert_message."
       },
       "id": "a1b2c3d4-0001-4000-8000-000000000008",
       "name": "AI Agent",
@@ -450,8 +452,8 @@
   },
   "meta": null,
   "pinData": {},
-  "activeVersionId": "197a74e4-565d-4c9b-bfa1-8077d100b02f",
-  "versionCounter": 63,
+  "activeVersionId": "2b27fcba-1fd0-48fa-9750-254c33662605",
+  "versionCounter": 75,
   "shared": [
     {
       "updatedAt": "2026-05-24T15:49:29.020Z",
@@ -474,9 +476,9 @@
   "tags": [],
   "parentFolder": null,
   "activeVersion": {
-    "updatedAt": "2026-05-24T17:28:20.749Z",
-    "createdAt": "2026-05-24T17:28:20.749Z",
-    "versionId": "197a74e4-565d-4c9b-bfa1-8077d100b02f",
+    "updatedAt": "2026-05-24T17:43:25.835Z",
+    "createdAt": "2026-05-24T17:43:25.835Z",
+    "versionId": "2b27fcba-1fd0-48fa-9750-254c33662605",
     "workflowId": "ZdsYUJjX5SdPtawd",
     "nodes": [
       {
@@ -617,7 +619,8 @@
           },
           "options": {
             "includeBinary": false
-          }
+          },
+          "include": "all"
         },
         "id": "a1b2c3d4-0001-4000-8000-000000000006",
         "name": "Set Decision Deactivate",
@@ -642,7 +645,8 @@
           },
           "options": {
             "includeBinary": false
-          }
+          },
+          "include": "all"
         },
         "id": "a1b2c3d4-0001-4000-8000-000000000007",
         "name": "Set Decision Reenable",
@@ -660,7 +664,7 @@
             "systemMessage": "=Goal:\n\u0417\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0438\u043d\u0446\u0438\u0434\u0435\u043d\u0442 \u0438\u043b\u0438 recovery \u0434\u043b\u044f feature {{$json.feature_id}}.\nDecision \u0438\u0437 upstream: {{$json.decision}} (deactivate | reenable).\n\nContext:\n- Decision \u0443\u0436\u0435 \u043f\u043e\u0441\u0447\u0438\u0442\u0430\u043d upstream (\u0432 Switch-\u043d\u043e\u0434\u0435) \u2014 \u0442\u0432\u043e\u044f \u0437\u0430\u0434\u0430\u0447\u0430 \u0432\u044b\u043f\u043e\u043b\u043d\u0438\u0442\u044c \u0440\u0435\u0448\u0435\u043d\u0438\u0435 \u0447\u0435\u0440\u0435\u0437 MCP.\n- Available tools: get_feature_info, set_feature_state.\n- \u041d\u0415 \u043f\u0440\u0438\u043d\u0438\u043c\u0430\u0439 \u0440\u0435\u0448\u0435\u043d\u0438\u0435 \u0441\u0430\u043c\u043e\u0441\u0442\u043e\u044f\u0442\u0435\u043b\u044c\u043d\u043e: \u0441\u043b\u0435\u0434\u0443\u0439 decision \u0438\u0437 payload.\n\nAction:\n1. \u0412\u044b\u0437\u043e\u0432\u0438 get_feature_info \u0434\u043b\u044f \u0430\u043a\u0442\u0443\u0430\u043b\u044c\u043d\u043e\u0433\u043e state.\n2. \u0415\u0441\u043b\u0438 decision=\"deactivate\": \u043f\u0440\u043e\u0432\u0435\u0440\u044c \u0447\u0442\u043e status != \"Disabled\" \u2192 set_feature_state(\"Disabled\") \u2192 verify.\n3. \u0415\u0441\u043b\u0438 decision=\"reenable\": \u043f\u0440\u043e\u0432\u0435\u0440\u044c \u0447\u0442\u043e status == \"Disabled\" \u2192 set_feature_state(\"Enabled\") \u2192 verify.\n4. \u0421\u0444\u043e\u0440\u043c\u0438\u0440\u0443\u0439 alert_message \u0434\u043b\u044f Telegram.\n\nOutput:\nJSON: { action_taken, previous_state, new_state, alert_message, error_rate_percent, threshold_used, reason }\n\nConstraints:\n- \u041d\u0415 \u0432\u044b\u0437\u044b\u0432\u0430\u0439 set_feature_state \u0435\u0441\u043b\u0438 state \u0443\u0436\u0435 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u0435\u0442 \u0446\u0435\u043b\u0435\u0432\u043e\u043c\u0443.\n- alert_message \u043d\u0430 \u0440\u0443\u0441\u0441\u043a\u043e\u043c: \ud83d\udea8 \u0434\u043b\u044f deactivate, \u2705 \u0434\u043b\u044f reenable."
           },
           "promptType": "define",
-          "text": "=Feature: {{$json.feature_id}}\nDecision: {{$json.decision}}\nError rate: {{$json.error_rate}}\nCurrent status: {{$json.current_status}}\nCurrent traffic: {{$json.current_traffic}}%\nTotal events: {{$json.total_events}}\nError events: {{$json.error_events}}"
+          "text": "=EXECUTE IMMEDIATELY. NO QUESTIONS.\n\nFEATURE: {{ $('Merge Data').first().json.feature_id }}\nDECISION: {{ $json.decision }}\nERROR RATE: {{ $('Merge Data').first().json.error_rate }}\nSTATUS: {{ $('Merge Data').first().json.current_status }}\nTRAFFIC: {{ $('Merge Data').first().json.current_traffic }}%\nTOTAL EVENTS: {{ $('Merge Data').first().json.total_events }}\nERROR EVENTS: {{ $('Merge Data').first().json.error_events }}\n\nRULES:\n1. Act on EXACTLY the feature above. Do NOT pick another.\n2. If DECISION=deactivate: call set_feature_state(feature_name=the feature above, state=\"Disabled\").\n3. If DECISION=reenable: call set_feature_state(feature_name=the feature above, state=\"Testing\").\n4. Respond with JSON: action_taken, feature_name, error_rate, alert_message."
         },
         "id": "a1b2c3d4-0001-4000-8000-000000000008",
         "name": "AI Agent",
@@ -921,10 +925,10 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-05-24T17:28:21.255Z",
-        "id": 54,
+        "createdAt": "2026-05-24T17:43:26.338Z",
+        "id": 60,
         "workflowId": "ZdsYUJjX5SdPtawd",
-        "versionId": "197a74e4-565d-4c9b-bfa1-8077d100b02f",
+        "versionId": "2b27fcba-1fd0-48fa-9750-254c33662605",
         "event": "activated",
         "userId": "9f8d21b9-ed48-4b1f-a2d4-7d96faafb434"
       }
@@ -945,5 +949,5 @@
     "workflow:update",
     "workflow:updateRedactionSetting"
   ],
-  "checksum": "1bf27898e29bca878917c517f8a3c5dd91723e4766cf453301ec80b48398eb06"
+  "checksum": "3ed0468a8ce40aca3ed3f5b8da1b89bd5cf48c38a977cd17989177a876fbf1de"
 }

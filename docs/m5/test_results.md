@@ -100,7 +100,11 @@ Execution 121: success
 Path: Schedule Trigger → Read & Analyze Logs (HTTP) → Get Feature Status → Merge Data
      → Decision (deactivate branch) → Set Decision Deactivate → AI Agent → Telegram Send Message
 
-AI Agent вызвал инструменты, сформировал отчёт и отправил в Telegram.
+AI Agent:
+- Определил feature: search_v2
+- Вызвал set_feature_state(search_v2, Disabled)
+- Отправил Telegram alert: "🚨 INCIDENT: Feature 'search_v2' деактивирована. Ошибка 12.8% (171/1331 событий). Testing → Disabled."
+- Вернул JSON с action_taken, feature_name, error_rate, alert_message
 ```
 **Результат:** При error_rate > 5% WF2 корректно маршрутизирует через deactivate → AI Agent → Telegram.
 
