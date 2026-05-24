@@ -282,6 +282,156 @@ main {
 }
 
 /* ============================================
+   Summary Cards (Feature Dashboard)
+   ============================================ */
+
+.ps-summary-card {
+  background: var(--ps-surface);
+  border-radius: var(--ps-radius-md);
+  padding: var(--ps-space-3);
+  border-left: 4px solid var(--ps-border);
+  box-shadow: var(--ps-shadow-sm);
+  position: relative;
+  min-height: 100px;
+}
+
+.ps-summary-icon {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.ps-summary-number {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.ps-summary-label {
+  font-size: 13px;
+  color: var(--ps-text-muted);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.ps-summary-pct {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 13px;
+  color: var(--ps-text-muted);
+  font-weight: 600;
+}
+
+.ps-summary-total { border-left-color: var(--ps-primary); }
+.ps-summary-total .ps-summary-number { color: var(--ps-primary); }
+
+.ps-summary-enabled { border-left-color: var(--ps-success); }
+.ps-summary-enabled .ps-summary-number { color: var(--ps-success); }
+
+.ps-summary-testing { border-left-color: var(--ps-info); }
+.ps-summary-testing .ps-summary-number { color: var(--ps-info); }
+
+.ps-summary-disabled { border-left-color: var(--ps-muted); }
+.ps-summary-disabled .ps-summary-number { color: var(--ps-muted); }
+
+/* ============================================
+   Traffic Progress Bar
+   ============================================ */
+
+.ps-traffic-bar {
+  width: 80px;
+  height: 8px;
+  background: var(--ps-border);
+  border-radius: var(--ps-radius-pill);
+  overflow: hidden;
+}
+
+.ps-traffic-fill {
+  height: 100%;
+  border-radius: var(--ps-radius-pill);
+  transition: width 0.3s ease;
+}
+
+/* ============================================
+   Feature Description & Deps
+   ============================================ */
+
+.ps-feature-desc {
+  font-size: 12px;
+  color: var(--ps-text-muted);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.ps-dep-badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: var(--ps-radius-pill);
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--ps-info);
+  margin-right: 4px;
+  font-family: monospace;
+}
+
+/* ============================================
+   Table Row Selection & Border
+   ============================================ */
+
+.ps-row-selected {
+  background: rgba(26, 86, 219, 0.05) !important;
+}
+
+/* Flash animation when a feature changes via n8n / external API */
+.ps-row-flash {
+  animation: ps-flash 2s ease-out;
+}
+
+@keyframes ps-flash {
+  0%   { background: rgba(255, 193, 7, 0.35); }
+  100% { background: transparent; }
+}
+
+/* ============================================
+   Activity Feed
+   ============================================ */
+
+.ps-activity-feed {
+  background: var(--ps-surface);
+  border: 1px solid var(--ps-border);
+  border-radius: var(--ps-radius-md);
+  padding: var(--ps-space-2) var(--ps-space-3);
+}
+
+.ps-activity-entry {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--ps-border);
+  font-size: 13px;
+}
+
+.ps-activity-entry:last-child {
+  border-bottom: none;
+}
+
+.ps-activity-time {
+  color: var(--ps-text-muted);
+  font-size: 12px;
+  min-width: 70px;
+}
+
+.ps-activity-feature {
+  font-size: 12px;
+  color: var(--ps-info);
+}
+
+.ps-activity-msg {
+  color: var(--ps-text);
+}
+
+/* ============================================
    Empty & Error States
    ============================================ */
 

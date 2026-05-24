@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react'
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { useSelector } from 'react-redux'
 import {
   Table,
@@ -9,15 +9,17 @@ import {
   Form,
   Button,
   ButtonGroup,
+  Pagination,
 } from 'react-bootstrap'
 import AutoPilotControls from '../components/AutoPilotControls'
 
 const STATUS_OPTIONS = ['All', 'Enabled', 'Testing', 'Disabled']
+const PAGE_SIZE = 6
 
 /**
  * Maps a feature status string to a CSS badge class.
- * @param {string} status - One of 'Enabled', 'Testing', or 'Disabled'.
- * @returns {string} CSS class name for the badge.
+ * @param {string} status
+ * @returns {string}
  */
 const badgeClass = (status) => {
   const map = {
@@ -28,30 +30,32 @@ const badgeClass = (status) => {
   return map[status] || 'ps-badge ps-badge-disabled'
 }
 
+/** Status emoji prefix */
+const statusEmoji = (s) =>
+  s === 'Enabled' ? '✅ ' : s === 'Testing' ? '🧪 ' : '⛔ '
+
+/** Left-border color for table row */
+const rowBorderColor = (s) =>
+  s === 'Enabled'
+    ? 'var(--ps-success)'
+    : s === 'Testing'
+    ? 'var(--ps-info)'
+    : 'var(--ps-border)'
+
 /**
- * Renders a single skeleton table row for the loading state.
- * @param {object} props
- * @param {number} props.index - Row index for the key.
- * @returns {React.ReactElement}
+ * Skeleton row for loading state.
  */
 const SkeletonRow = ({ index }) => (
   <tr key={`skel-${index}`}>
-    <td>
-      <div className='ps-skeleton ps-skeleton-text' style={{ width: '80%' }} />
-      <div className='ps-skeleton ps-skeleton-text-sm' style={{ width: '50%' }} />
-    </td>
+    <td><div className='ps-skeleton ps-skeleton-text' style={{ width: '80%' }} /></td>
     <td><div className='ps-skeleton ps-skeleton-badge' /></td>
     <td><div className='ps-skeleton ps-skeleton-slider' /></td>
-    <td><div className='ps-skeleton ps-skeleton-text-sm' style={{ width: '70%' }} /></td>
     <td><div className='ps-skeleton ps-skeleton-text-sm' style={{ width: '40%' }} /></td>
   </tr>
 )
 
 /**
  * Admin Feature Dashboard screen.
- * Displays feature flags from /api/feature-flags with search, filter,
- * status toggle, and traffic slider controls.
- *
  * Route: /admin/featuredashboard (admin-only)
  */
 const FeatureDashboardScreen = ({ history }) => {
@@ -61,8 +65,13 @@ const FeatureDashboardScreen = ({ history }) => {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
   const [selectedFeature, setSelectedFeature] = useState(null)
+  const [autoSelected, setAutoSelected] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [activityLog, setActivityLog] = useState([])
+  const [changedKeys, setChangedKeys] = useState({})
+  const [autoRefresh, setAutoRefresh] = useState(true)
+  const prevFeaturesRef = useRef({})
 
-  /* Local overrides for UI-level changes (not persisted to backend) */
   const [statusOverrides, setStatusOverrides] = useState({})
   const [trafficOverrides, setTrafficOverrides] = useState({})
 
@@ -75,23 +84,46 @@ const FeatureDashboardScreen = ({ history }) => {
     }
   }, [history, userInfo])
 
-  const loadFeatures = useCallback(() => {
+  const loadFeatures = useCallback((isPolling = false) => {
     setError(null)
-    setLoading(true)
+    if (!isPolling) setLoading(true)
 
     fetch('/api/feature-flags')
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`)
-        }
-        return response.json()
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.json()
       })
       .then((data) => {
+        /* Detect which features changed since last load */
+        const prev = prevFeaturesRef.current
+        const changed = {}
+        Object.entries(data).forEach(([key, f]) => {
+          const old = prev[key]
+          if (old && (old.status !== f.status || old.traffic_percentage !== f.traffic_percentage)) {
+            changed[key] = true
+            /* Auto-log the change */
+            setActivityLog((log) => [
+              {
+                time: new Date().toLocaleTimeString(),
+                feature: key,
+                message: old.status !== f.status
+                  ? `Status: ${old.status} → ${f.status}`
+                  : `Traffic: ${old.traffic_percentage}% → ${f.traffic_percentage}%`,
+              },
+              ...log,
+            ].slice(0, 20))
+          }
+        })
+        if (Object.keys(changed).length > 0) {
+          setChangedKeys(changed)
+          setTimeout(() => setChangedKeys({}), 2000)
+        }
+        prevFeaturesRef.current = data
         setFeatures(data)
         setLoading(false)
       })
-      .catch((fetchError) => {
-        setError(fetchError.message)
+      .catch((e) => {
+        setError(e.message)
         setLoading(false)
       })
   }, [])
@@ -100,145 +132,168 @@ const FeatureDashboardScreen = ({ history }) => {
     loadFeatures()
   }, [loadFeatures])
 
+  /* Auto-refresh every 3s when enabled */
+  useEffect(() => {
+    if (!autoRefresh) return
+    const id = setInterval(() => loadFeatures(true), 3000)
+    return () => clearInterval(id)
+  }, [autoRefresh, loadFeatures])
+
   const rows = useMemo(
     () =>
       Object.entries(features)
         .map(([key, feature]) => ({ key, ...feature }))
-        .sort((left, right) => left.key.localeCompare(right.key)),
+        .sort((a, b) => a.key.localeCompare(b.key)),
     [features]
   )
 
+  /* Auto-select first feature for Auto-Pilot */
+  useEffect(() => {
+    if (!autoSelected && rows.length > 0 && !selectedFeature) {
+      setSelectedFeature(rows[0])
+      setAutoSelected(true)
+    }
+  }, [rows, autoSelected, selectedFeature])
+
   const filteredRows = useMemo(() => {
-    const searchValue = search.trim().toLowerCase()
-    return rows.filter((feature) => {
-      const effectiveStatus = statusOverrides[feature.key] || feature.status
-      const matchesStatus =
-        statusFilter === 'All' || effectiveStatus === statusFilter
-      const haystack =
-        `${feature.key} ${feature.name}`.toLowerCase()
-      const matchesSearch = searchValue === '' || haystack.includes(searchValue)
-      return matchesStatus && matchesSearch
+    const q = search.trim().toLowerCase()
+    return rows.filter((f) => {
+      const status = statusOverrides[f.key] || f.status
+      if (statusFilter !== 'All' && status !== statusFilter) return false
+      if (q && !`${f.key} ${f.name} ${f.description || ''}`.toLowerCase().includes(q))
+        return false
+      return true
     })
   }, [rows, search, statusFilter, statusOverrides])
 
+  /* Pagination */
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE))
+  const page = Math.min(currentPage, totalPages)
+  const pagedRows = filteredRows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  /* Reset page on filter change */
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, statusFilter])
+
   const summary = useMemo(() => {
-    const counts = { total: 0, Enabled: 0, Testing: 0, Disabled: 0 }
-    rows.forEach((feature) => {
-      const effectiveStatus = statusOverrides[feature.key] || feature.status
-      counts.total += 1
-      counts[effectiveStatus] = (counts[effectiveStatus] || 0) + 1
+    const c = { total: 0, Enabled: 0, Testing: 0, Disabled: 0 }
+    rows.forEach((f) => {
+      const s = statusOverrides[f.key] || f.status
+      c.total += 1
+      c[s] = (c[s] || 0) + 1
     })
-    return counts
+    return c
   }, [rows, statusOverrides])
 
-  const handleStatusChange = (key, newStatus) => {
-    setStatusOverrides((prev) => ({ ...prev, [key]: newStatus }))
+  const handleStatusChange = (key, s) => {
+    setStatusOverrides((p) => ({ ...p, [key]: s }))
   }
 
-  const handleTrafficChange = (key, value) => {
-    setTrafficOverrides((prev) => ({ ...prev, [key]: Number(value) }))
+  const handleTrafficChange = (key, v) => {
+    setTrafficOverrides((p) => ({ ...p, [key]: Number(v) }))
   }
+
+  /** Add entry to activity log (from AutoPilotControls callback) */
+  const addActivity = useCallback((entry) => {
+    setActivityLog((prev) => [entry, ...prev].slice(0, 10))
+  }, [])
 
   const resetFilters = () => {
     setSearch('')
     setStatusFilter('All')
   }
 
-  /* Announce filter results to screen readers */
-  const resultCount = filteredRows.length
-
-  /* ── Loading State ───────────────────────────────────── */
+  /* ── Loading ─────────────────────────────────────── */
   if (loading) {
     return (
       <Container className='py-3'>
-        <h1>Feature Dashboard</h1>
+        <h1>🚩 Feature Flag Dashboard</h1>
         <Table className='ps-table' responsive>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Status</th>
-              <th>Traffic %</th>
-              <th>Last Modified</th>
-              <th>Dependencies</th>
+              <th>Feature</th><th>Status</th><th>Traffic</th><th>Modified</th>
             </tr>
           </thead>
           <tbody>
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <SkeletonRow key={i} index={i} />
-            ))}
+            {[0, 1, 2, 3, 4, 5].map((i) => <SkeletonRow key={i} index={i} />)}
           </tbody>
         </Table>
       </Container>
     )
   }
 
-  /* ── Error State ─────────────────────────────────────── */
+  /* ── Error ───────────────────────────────────────── */
   if (error && rows.length === 0) {
     return (
       <Container className='py-3'>
-        <h1>Feature Dashboard</h1>
+        <h1>🚩 Feature Flag Dashboard</h1>
         <div className='ps-error-state' role='alert'>
-          <p style={{ marginBottom: 'var(--ps-space-2)' }}>
-            <strong>Failed to load feature flags.</strong> {error}
-          </p>
-          <Button
-            variant='outline-danger'
-            onClick={loadFeatures}
-            aria-label='Retry loading feature flags'
-          >
-            Try again
-          </Button>
+          <p><strong>Failed to load feature flags.</strong> {error}</p>
+          <Button variant='outline-danger' onClick={loadFeatures}>Try again</Button>
         </div>
       </Container>
     )
   }
 
-  /* ── Main UI ─────────────────────────────────────────── */
+  /* ── Main ────────────────────────────────────────── */
   return (
     <Container className='py-3'>
-      <Row className='align-items-center' style={{ marginBottom: 'var(--ps-space-3)' }}>
+      {/* Header */}
+      <Row className='align-items-center' style={{ marginBottom: 16 }}>
         <Col>
-          <h1 style={{ marginBottom: 'var(--ps-space-1)' }}>Feature Dashboard</h1>
-          {/* Inline summary stats — no colored-border cards */}
-          <div className='ps-stats-bar' aria-label='Feature flag summary'>
-            <span>
-              Total: <strong>{summary.total}</strong>
-            </span>
-            <span>
-              Enabled: <strong style={{ color: 'var(--ps-success)' }}>{summary.Enabled}</strong>
-            </span>
-            <span>
-              Testing: <strong style={{ color: 'var(--ps-info)' }}>{summary.Testing}</strong>
-            </span>
-            <span>
-              Disabled: <strong style={{ color: 'var(--ps-muted)' }}>{summary.Disabled}</strong>
-            </span>
-          </div>
+          <h1 style={{ marginBottom: 4 }}>🚩 Feature Flag Dashboard</h1>
+          <p style={{ color: 'var(--ps-text-muted)', margin: 0, fontSize: 14 }}>
+            Manage feature flags with AI-powered Auto-Pilot&nbsp;
+            <span style={{ opacity: 0.6 }}>(n8n + Claude Haiku)</span>
+          </p>
         </Col>
-        <Col xs='auto'>
-          <Button
-            variant='outline-primary'
-            onClick={loadFeatures}
-            aria-label='Refresh feature list'
-          >
-            Refresh
-          </Button>
+        <Col xs='auto' className='d-flex align-items-center' style={{ gap: 8 }}>
+          <Form.Check
+            type='switch'
+            id='auto-refresh-switch'
+            label={autoRefresh ? '🔴 Live' : 'Auto'}
+            checked={autoRefresh}
+            onChange={() => setAutoRefresh(!autoRefresh)}
+            style={{ fontSize: 13 }}
+          />
+          <Button variant='outline-primary' size='sm' onClick={() => loadFeatures()}>↻ Refresh</Button>
         </Col>
       </Row>
 
+      {/* ── Summary Cards ────────────────────────── */}
+      <Row style={{ marginBottom: 24 }}>
+        {[
+          { label: 'Total Features', count: summary.total, cls: 'ps-summary-total', icon: '📊' },
+          { label: 'Enabled', count: summary.Enabled, cls: 'ps-summary-enabled', icon: '✅' },
+          { label: 'Testing', count: summary.Testing, cls: 'ps-summary-testing', icon: '🧪' },
+          { label: 'Disabled', count: summary.Disabled, cls: 'ps-summary-disabled', icon: '⛔' },
+        ].map((c) => (
+          <Col xs={6} md={3} key={c.label} style={{ marginBottom: 8 }}>
+            <div className={`ps-summary-card ${c.cls}`}>
+              <div className='ps-summary-icon'>{c.icon}</div>
+              <div className='ps-summary-number'>{c.count}</div>
+              <div className='ps-summary-label'>{c.label}</div>
+              {c.label !== 'Total Features' && summary.total > 0 && (
+                <div className='ps-summary-pct'>
+                  {Math.round((c.count / summary.total) * 100)}%
+                </div>
+              )}
+            </div>
+          </Col>
+        ))}
+      </Row>
+
       {error && (
-        <Alert variant='danger' style={{ marginBottom: 'var(--ps-space-2)' }}>
+        <Alert variant='danger' style={{ marginBottom: 16 }}>
           Error loading feature flags: {error}
         </Alert>
       )}
 
-      {/* Search + Filter */}
-      <div
-        className='ps-card'
-        style={{ marginBottom: 'var(--ps-space-3)' }}
-      >
+      {/* ── Search + Filter ──────────────────────── */}
+      <div className='ps-card' style={{ marginBottom: 24 }}>
         <Row className='align-items-end'>
-          <Col md={8} style={{ marginBottom: 'var(--ps-space-2)' }}>
+          <Col md={8} style={{ marginBottom: 8 }}>
             <Form.Group controlId='featureSearch' style={{ marginBottom: 0 }}>
               <Form.Label className='small' style={{ color: 'var(--ps-text-muted)' }}>
                 Search features
@@ -248,30 +303,23 @@ const FeatureDashboardScreen = ({ history }) => {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder='search_v2, checkout, stripe...'
-                aria-label='Search features by name'
               />
             </Form.Group>
           </Col>
-          <Col md={4} style={{ marginBottom: 'var(--ps-space-2)' }}>
+          <Col md={4} style={{ marginBottom: 8 }}>
             <Form.Label className='small' style={{ color: 'var(--ps-text-muted)' }}>
               Filter by status
             </Form.Label>
             <div>
-              <ButtonGroup
-                role='group'
-                aria-label='Filter features by status'
-              >
-                {STATUS_OPTIONS.map((option) => (
+              <ButtonGroup>
+                {STATUS_OPTIONS.map((opt) => (
                   <Button
-                    key={option}
-                    variant={
-                      statusFilter === option ? 'primary' : 'outline-secondary'
-                    }
+                    key={opt}
+                    variant={statusFilter === opt ? 'primary' : 'outline-secondary'}
                     size='sm'
-                    onClick={() => setStatusFilter(option)}
-                    aria-pressed={statusFilter === option}
+                    onClick={() => setStatusFilter(opt)}
                   >
-                    {option}
+                    {opt}
                   </Button>
                 ))}
               </ButtonGroup>
@@ -280,100 +328,87 @@ const FeatureDashboardScreen = ({ history }) => {
         </Row>
       </div>
 
-      {/* Screen reader live region for result count */}
-      <div
-        aria-live='polite'
-        className='sr-only'
-        style={{
-          position: 'absolute',
-          width: '1px',
-          height: '1px',
-          overflow: 'hidden',
-          clip: 'rect(0,0,0,0)',
-        }}
-      >
-        {resultCount} features shown
-      </div>
-
-      {/* Feature Table */}
+      {/* ── Feature Table ────────────────────────── */}
       <Table className='ps-table' responsive>
         <thead>
           <tr>
-            <th>Name</th>
+            <th style={{ width: '45%' }}>Feature</th>
             <th>Status</th>
-            <th>Traffic %</th>
-            <th>Last Modified</th>
-            <th>Dependencies</th>
+            <th>Traffic</th>
+            <th>Modified</th>
           </tr>
         </thead>
         <tbody>
-          {filteredRows.length === 0 ? (
+          {pagedRows.length === 0 ? (
             <tr>
-              <td colSpan='5'>
+              <td colSpan='4'>
                 <div className='ps-empty-state'>
-                  <p style={{ marginBottom: 'var(--ps-space-1)' }}>
-                    No features match the current filters.
-                  </p>
-                  <Button
-                    variant='link'
-                    onClick={resetFilters}
-                    style={{ color: 'var(--ps-primary)' }}
-                  >
-                    Reset filters
-                  </Button>
+                  <p>No features match the current filters.</p>
+                  <Button variant='link' onClick={resetFilters}>Reset filters</Button>
                 </div>
               </td>
             </tr>
           ) : (
-            filteredRows.map((feature) => {
-              const effectiveStatus =
-                statusOverrides[feature.key] || feature.status
+            pagedRows.map((feature) => {
+              const effectiveStatus = statusOverrides[feature.key] || feature.status
               const effectiveTraffic =
                 trafficOverrides[feature.key] !== undefined
                   ? trafficOverrides[feature.key]
                   : feature.traffic_percentage
+              const isSelected = selectedFeature && selectedFeature.key === feature.key
 
               return (
                 <tr
                   key={feature.key}
+                  className={`${isSelected ? 'ps-row-selected' : ''} ${changedKeys[feature.key] ? 'ps-row-flash' : ''}`}
                   onClick={() => setSelectedFeature(feature)}
-                  style={{ cursor: 'pointer', background: selectedFeature && selectedFeature.key === feature.key ? 'var(--ps-bg-hover, #f5f5f5)' : undefined }}
+                  style={{
+                    cursor: 'pointer',
+                    borderLeft: `4px solid ${rowBorderColor(effectiveStatus)}`,
+                  }}
                 >
-                  {/* Name */}
+                  {/* Feature name + description */}
                   <td>
-                    <code style={{ fontSize: 'var(--ps-text-xs)' }}>
+                    <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 2 }}>
+                      {feature.name || feature.key}
+                    </div>
+                    <code style={{ fontSize: 11, color: 'var(--ps-text-muted)' }}>
                       {feature.key}
                     </code>
-                    <div
-                      className='small'
-                      style={{ color: 'var(--ps-text-muted)' }}
-                    >
-                      {feature.name}
-                    </div>
+                    {feature.description && (
+                      <div
+                        className='ps-feature-desc'
+                        title={feature.description}
+                      >
+                        {feature.description.length > 90
+                          ? feature.description.slice(0, 90) + '…'
+                          : feature.description}
+                      </div>
+                    )}
+                    {(feature.dependencies || []).length > 0 && (
+                      <div style={{ marginTop: 4 }}>
+                        <span style={{ fontSize: 11, color: 'var(--ps-text-muted)' }}>deps: </span>
+                        {feature.dependencies.map((dep) => (
+                          <span key={dep} className='ps-dep-badge'>{dep}</span>
+                        ))}
+                      </div>
+                    )}
                   </td>
 
-                  {/* Status with dropdown */}
+                  {/* Status badge + selector */}
                   <td>
                     <span
                       className={badgeClass(effectiveStatus)}
-                      role='status'
-                      style={{ marginBottom: 'var(--ps-space-1)', display: 'inline-block' }}
+                      style={{ fontSize: 13, padding: '4px 10px', display: 'inline-block', marginBottom: 4 }}
                     >
-                      {effectiveStatus}
+                      {statusEmoji(effectiveStatus)}{effectiveStatus}
                     </span>
                     <Form.Control
                       as='select'
                       size='sm'
                       value={effectiveStatus}
-                      onChange={(e) =>
-                        handleStatusChange(feature.key, e.target.value)
-                      }
-                      aria-label={`Change status for ${feature.name}`}
-                      style={{
-                        width: '120px',
-                        fontSize: 'var(--ps-text-xs)',
-                        marginTop: '4px',
-                      }}
+                      onChange={(e) => handleStatusChange(feature.key, e.target.value)}
+                      style={{ width: 110, fontSize: 12 }}
                     >
                       <option value='Disabled'>Disabled</option>
                       <option value='Testing'>Testing</option>
@@ -381,58 +416,40 @@ const FeatureDashboardScreen = ({ history }) => {
                     </Form.Control>
                   </td>
 
-                  {/* Traffic Slider */}
+                  {/* Traffic bar + slider */}
                   <td>
-                    <div className='d-flex align-items-center'>
-                      <input
-                        type='range'
-                        className='ps-range'
-                        min='0'
-                        max='100'
-                        value={effectiveTraffic}
-                        onChange={(e) =>
-                          handleTrafficChange(feature.key, e.target.value)
-                        }
-                        aria-label={`Traffic percentage for ${feature.name}`}
-                        aria-valuetext={`${effectiveTraffic} percent`}
-                        style={{ width: '100px' }}
-                      />
-                      <span
-                        className='ml-2'
-                        style={{
-                          minWidth: '40px',
-                          fontSize: 'var(--ps-text-xs)',
-                          fontWeight: 500,
-                        }}
-                      >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div className='ps-traffic-bar'>
+                        <div
+                          className='ps-traffic-fill'
+                          style={{
+                            width: `${effectiveTraffic}%`,
+                            background:
+                              effectiveTraffic > 50
+                                ? 'var(--ps-success)'
+                                : effectiveTraffic > 0
+                                ? 'var(--ps-info)'
+                                : 'var(--ps-border)',
+                          }}
+                        />
+                      </div>
+                      <span style={{ fontWeight: 600, fontSize: 14, minWidth: 36 }}>
                         {effectiveTraffic}%
                       </span>
                     </div>
+                    <input
+                      type='range'
+                      className='ps-range'
+                      min='0' max='100'
+                      value={effectiveTraffic}
+                      onChange={(e) => handleTrafficChange(feature.key, e.target.value)}
+                      style={{ width: 90, marginTop: 4 }}
+                    />
                   </td>
 
-                  {/* Last Modified */}
-                  <td style={{ fontSize: 'var(--ps-text-xs)', color: 'var(--ps-text-muted)' }}>
+                  {/* Last modified */}
+                  <td style={{ fontSize: 12, color: 'var(--ps-text-muted)', whiteSpace: 'nowrap' }}>
                     {feature.last_modified}
-                  </td>
-
-                  {/* Dependencies */}
-                  <td>
-                    {(feature.dependencies || []).length === 0 ? (
-                      <span style={{ color: 'var(--ps-text-muted)' }}>—</span>
-                    ) : (
-                      (feature.dependencies || []).map((dep) => (
-                        <span
-                          key={dep}
-                          className='ps-badge ps-badge-disabled'
-                          style={{
-                            marginRight: 'var(--ps-space-1)',
-                            fontSize: '12px',
-                          }}
-                        >
-                          {dep}
-                        </span>
-                      ))
-                    )}
                   </td>
                 </tr>
               )
@@ -441,14 +458,63 @@ const FeatureDashboardScreen = ({ history }) => {
         </tbody>
       </Table>
 
+      {/* ── Pagination ───────────────────────────── */}
+      {totalPages > 1 && (
+        <div className='d-flex justify-content-between align-items-center' style={{ marginBottom: 16 }}>
+          <span style={{ fontSize: 13, color: 'var(--ps-text-muted)' }}>
+            Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filteredRows.length)} of {filteredRows.length}
+          </span>
+          <Pagination size='sm' className='mb-0'>
+            <Pagination.Prev
+              disabled={page <= 1}
+              onClick={() => setCurrentPage(page - 1)}
+            />
+            {[...Array(totalPages)].map((_, i) => (
+              <Pagination.Item
+                key={i + 1}
+                active={page === i + 1}
+                onClick={() => setCurrentPage(i + 1)}
+              >
+                {i + 1}
+              </Pagination.Item>
+            ))}
+            <Pagination.Next
+              disabled={page >= totalPages}
+              onClick={() => setCurrentPage(page + 1)}
+            />
+          </Pagination>
+        </div>
+      )}
+
+      {/* ── Auto-Pilot Controls ──────────────────── */}
       {selectedFeature && (
         <AutoPilotControls
           feature={selectedFeature}
-          onUpdate={() => {
+          onUpdate={(result) => {
+            addActivity({
+              time: new Date().toLocaleTimeString(),
+              feature: selectedFeature.key,
+              message: typeof result === 'string' ? result : 'Action completed',
+            })
             loadFeatures()
-            setSelectedFeature(null)
           }}
         />
+      )}
+
+      {/* ── Activity Feed ────────────────────────── */}
+      {activityLog.length > 0 && (
+        <div className='ps-activity-feed' style={{ marginTop: 24 }}>
+          <h3 style={{ fontSize: 16, marginBottom: 8 }}>
+            📋 Activity Log
+          </h3>
+          {activityLog.map((entry, i) => (
+            <div key={i} className='ps-activity-entry'>
+              <span className='ps-activity-time'>{entry.time}</span>
+              <code className='ps-activity-feature'>{entry.feature}</code>
+              <span className='ps-activity-msg'>{entry.message}</span>
+            </div>
+          ))}
+        </div>
       )}
     </Container>
   )
