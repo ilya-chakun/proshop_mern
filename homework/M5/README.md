@@ -188,6 +188,10 @@ Both workflows use GCAO (Goal / Context / Action / Output) system prompts:
 
 TODO — будет записан отдельно (3-5 мин демо полного цикла).
 
+## CC-агенты
+
+Вместо Claude Code субагентов (`~/.claude/agents/`) использовал **OpenCode** с агентами Worker/Planner/Reviewer для сборки и отладки workflow. Результат тот же — workflow JSON сгенерирован, импортирован, протестирован.
+
 ## Бонусы
 
 - [ ] HITL Wait-нода
