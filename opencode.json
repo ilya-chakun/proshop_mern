@@ -16,6 +16,14 @@
         "/Users/ilyachakun/Desktop/projects/ai-course/proshop_mern/ai/mcp-search-docs/server.py"
       ],
       "enabled": true
+    },
+    "puppeteer": {
+      "type": "local",
+      "command": [
+        "node",
+        "/Users/ilyachakun/Desktop/projects/ai-course/proshop_mern/mcp-servers/puppeteer/node_modules/@modelcontextprotocol/server-puppeteer/dist/index.js"
+      ],
+      "enabled": true
     }
   }
 }

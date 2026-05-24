@@ -29,3 +29,16 @@ yarn-error.log*
 .m3-recon.md
 BLOCKED.md
 __pycache__/
+
+# M5 credential files (never commit secrets)
+docs/m5/credentials/
+mcp-servers/
+
+# M5 credentials
+*.key
+claude_api_key.txt
+google_gemini_api_key.txt
+n8n_creds.txt
+telegram_bot_keys.txt
+docs/m5/credentials/
+
