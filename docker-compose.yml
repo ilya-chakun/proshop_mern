@@ -63,5 +63,20 @@ services:
     tty: true
     restart: unless-stopped
 
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: proshop-n8n
+    ports:
+      - '5678:5678'
+    volumes:
+      - n8n-data:/home/node/.n8n
+      - ./docs/m5/data:/data/logs
+    environment:
+      - GENERIC_TIMEZONE=Europe/Minsk
+      - N8N_SECURE_COOKIE=false
+      - NODE_FUNCTION_ALLOW_BUILTIN=*
+    restart: unless-stopped
+
 volumes:
   mongo-data:
+  n8n-data:

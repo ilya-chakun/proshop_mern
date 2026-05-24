@@ -10,6 +10,7 @@ import {
   Button,
   ButtonGroup,
 } from 'react-bootstrap'
+import AutoPilotControls from '../components/AutoPilotControls'
 
 const STATUS_OPTIONS = ['All', 'Enabled', 'Testing', 'Disabled']
 
@@ -59,6 +60,7 @@ const FeatureDashboardScreen = ({ history }) => {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
+  const [selectedFeature, setSelectedFeature] = useState(null)
 
   /* Local overrides for UI-level changes (not persisted to backend) */
   const [statusOverrides, setStatusOverrides] = useState({})
@@ -332,7 +334,11 @@ const FeatureDashboardScreen = ({ history }) => {
                   : feature.traffic_percentage
 
               return (
-                <tr key={feature.key}>
+                <tr
+                  key={feature.key}
+                  onClick={() => setSelectedFeature(feature)}
+                  style={{ cursor: 'pointer', background: selectedFeature && selectedFeature.key === feature.key ? 'var(--ps-bg-hover, #f5f5f5)' : undefined }}
+                >
                   {/* Name */}
                   <td>
                     <code style={{ fontSize: 'var(--ps-text-xs)' }}>
@@ -434,6 +440,16 @@ const FeatureDashboardScreen = ({ history }) => {
           )}
         </tbody>
       </Table>
+
+      {selectedFeature && (
+        <AutoPilotControls
+          feature={selectedFeature}
+          onUpdate={() => {
+            loadFeatures()
+            setSelectedFeature(null)
+          }}
+        />
+      )}
     </Container>
   )
 }

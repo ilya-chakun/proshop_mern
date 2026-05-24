@@ -1,0 +1,981 @@
+{
+  "name": "WF2 \u2014 Scheduled Monitor (search_v2)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000001",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\ntry {\n  const raw = require('node:fs').readFileSync('/data/logs/logs.json', 'utf8');\n  const events = JSON.parse(raw);\n  const now = Date.now();\n  const windowMs = 60 * 1000;\n  const recent = events.filter(e => (now - new Date(e.timestamp).getTime()) < windowMs);\n  const total = recent.length;\n  const errors = recent.filter(e => e.status === 'error').length;\n  const error_rate = total > 0 ? errors / total : 0;\n  return [{ json: { error_rate: Math.round(error_rate * 1000) / 1000, total_events: total, error_events: errors, window_seconds: 60, feature_id: 'search_v2' } }];\n} catch (e) {\n  return [{ json: { error_rate: 0, total_events: 0, error_events: 0, window_seconds: 60, feature_id: 'search_v2', read_error: e.message } }];\n}\n"
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000002",
+      "name": "Read & Analyze Logs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://host.docker.internal:5001/api/feature-flags",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000003",
+      "name": "Get Feature Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        520,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const logData = $input.first().json;\nconst allFeatures = $('Get Feature Status').first().json;\nconst featureId = logData.feature_id || 'search_v2';\nconst feature = allFeatures[featureId] || {};\nreturn [{ json: { ...logData, current_status: feature.status || 'unknown', current_traffic: feature.traffic_percentage || 0, feature_id: featureId } }];"
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000004",
+      "name": "Merge Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.error_rate }}",
+                    "rightValue": 0.05,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json.current_status }}",
+                    "rightValue": "Disabled",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEquals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "deactivate"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.error_rate }}",
+                    "rightValue": 0.01,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lt"
+                    }
+                  },
+                  {
+                    "leftValue": "={{ $json.current_status }}",
+                    "rightValue": "Disabled",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "reenable"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000005",
+      "name": "Decision",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        1040,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dec-deact",
+              "name": "decision",
+              "value": "deactivate",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeBinary": false
+        }
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000006",
+      "name": "Set Decision Deactivate",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1300,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "dec-reen",
+              "name": "decision",
+              "value": "reenable",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "includeBinary": false
+        }
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000007",
+      "name": "Set Decision Reenable",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1300,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "maxIterations": 3,
+          "systemMessage": "=Goal:\n\u0417\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0438\u043d\u0446\u0438\u0434\u0435\u043d\u0442 \u0438\u043b\u0438 recovery \u0434\u043b\u044f feature {{$json.feature_id}}.\nDecision \u0438\u0437 upstream: {{$json.decision}} (deactivate | reenable).\n\nContext:\n- Decision \u0443\u0436\u0435 \u043f\u043e\u0441\u0447\u0438\u0442\u0430\u043d upstream (\u0432 Switch-\u043d\u043e\u0434\u0435) \u2014 \u0442\u0432\u043e\u044f \u0437\u0430\u0434\u0430\u0447\u0430 \u0432\u044b\u043f\u043e\u043b\u043d\u0438\u0442\u044c \u0440\u0435\u0448\u0435\u043d\u0438\u0435 \u0447\u0435\u0440\u0435\u0437 MCP.\n- Available tools: get_feature_info, set_feature_state.\n- \u041d\u0415 \u043f\u0440\u0438\u043d\u0438\u043c\u0430\u0439 \u0440\u0435\u0448\u0435\u043d\u0438\u0435 \u0441\u0430\u043c\u043e\u0441\u0442\u043e\u044f\u0442\u0435\u043b\u044c\u043d\u043e: \u0441\u043b\u0435\u0434\u0443\u0439 decision \u0438\u0437 payload.\n\nAction:\n1. \u0412\u044b\u0437\u043e\u0432\u0438 get_feature_info \u0434\u043b\u044f \u0430\u043a\u0442\u0443\u0430\u043b\u044c\u043d\u043e\u0433\u043e state.\n2. \u0415\u0441\u043b\u0438 decision=\"deactivate\": \u043f\u0440\u043e\u0432\u0435\u0440\u044c \u0447\u0442\u043e status != \"Disabled\" \u2192 set_feature_state(\"Disabled\") \u2192 verify.\n3. \u0415\u0441\u043b\u0438 decision=\"reenable\": \u043f\u0440\u043e\u0432\u0435\u0440\u044c \u0447\u0442\u043e status == \"Disabled\" \u2192 set_feature_state(\"Enabled\") \u2192 verify.\n4. \u0421\u0444\u043e\u0440\u043c\u0438\u0440\u0443\u0439 alert_message \u0434\u043b\u044f Telegram.\n\nOutput:\nJSON: { action_taken, previous_state, new_state, alert_message, error_rate_percent, threshold_used, reason }\n\nConstraints:\n- \u041d\u0415 \u0432\u044b\u0437\u044b\u0432\u0430\u0439 set_feature_state \u0435\u0441\u043b\u0438 state \u0443\u0436\u0435 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u0435\u0442 \u0446\u0435\u043b\u0435\u0432\u043e\u043c\u0443.\n- alert_message \u043d\u0430 \u0440\u0443\u0441\u0441\u043a\u043e\u043c: \ud83d\udea8 \u0434\u043b\u044f deactivate, \u2705 \u0434\u043b\u044f reenable."
+        },
+        "promptType": "define",
+        "text": "=Feature: {{$json.feature_id}}\nDecision: {{$json.decision}}\nError rate: {{$json.error_rate}}\nCurrent status: {{$json.current_status}}\nCurrent traffic: {{$json.current_traffic}}%\nTotal events: {{$json.total_events}}\nError events: {{$json.error_events}}"
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000008",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "model": "claude-haiku-4-5-20251001",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000009",
+      "name": "Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1,
+      "position": [
+        1480,
+        520
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "ln8Dcy6NApMnHpTO",
+          "name": "Anthropic Claude"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "854243765",
+        "text": "={{ $json.output || $json.text || JSON.stringify($json) }}",
+        "additionalFields": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-00000000000b",
+      "name": "Telegram Send Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1820,
+        300
+      ],
+      "webhookId": "76078e8c-57e0-4e5e-b957-a9ee253bb5b3",
+      "credentials": {
+        "telegramApi": {
+          "id": "LdYwpWGnxdqqrqaf",
+          "name": "Telegram ProShop Alerts"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "a1b2c3d4-0001-4000-8000-00000000000c",
+      "name": "NoOp",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1300,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "name": "get_feature_info",
+        "description": "Get current state of a feature flag. Input: JSON with feature_name (string).",
+        "method": "GET",
+        "url": "=http://host.docker.internal:5001/api/feature-flags/{{ $fromAI(\"feature_name\", \"The feature flag key\", \"string\") }}",
+        "placeholderDefinitions": {
+          "values": []
+        },
+        "sendBody": false
+      },
+      "id": "tool-http-get-info-2",
+      "name": "Get Feature Info",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "name": "set_feature_state",
+        "description": "Change the status of a feature flag. Input: JSON with feature_name (string) and state (string, one of Disabled/Testing/Enabled).",
+        "method": "POST",
+        "url": "http://host.docker.internal:5001/api/feature-flags/state",
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "parametersBody": {
+          "values": [
+            {
+              "name": "feature_name",
+              "value": "={{ $fromAI(\"feature_name\", \"The feature flag key\", \"string\") }}"
+            },
+            {
+              "name": "state",
+              "value": "={{ $fromAI(\"state\", \"Target state: Disabled, Testing, or Enabled\", \"string\") }}"
+            }
+          ]
+        },
+        "placeholderDefinitions": {
+          "values": []
+        }
+      },
+      "id": "tool-http-set-state-2",
+      "name": "Set Feature State",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        900
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read & Analyze Logs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read & Analyze Logs": {
+      "main": [
+        [
+          {
+            "node": "Get Feature Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Feature Status": {
+      "main": [
+        [
+          {
+            "node": "Merge Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Data": {
+      "main": [
+        [
+          {
+            "node": "Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decision": {
+      "main": [
+        [
+          {
+            "node": "Set Decision Deactivate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Decision Reenable",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NoOp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Decision Deactivate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Decision Reenable": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Feature Info": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Feature State": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": null,
+  "pinData": {},
+  "activeVersionId": "1fc5a0da-61de-4e03-ab52-cad4272a8d5e",
+  "versionCounter": 41,
+  "shared": [
+    {
+      "updatedAt": "2026-05-24T15:49:29.020Z",
+      "createdAt": "2026-05-24T15:49:29.020Z",
+      "role": "workflow:owner",
+      "workflowId": "ZdsYUJjX5SdPtawd",
+      "projectId": "o8THLifXcgnxXJ9N",
+      "project": {
+        "updatedAt": "2026-05-24T12:17:55.444Z",
+        "createdAt": "2026-05-24T12:12:20.977Z",
+        "id": "o8THLifXcgnxXJ9N",
+        "name": "test test <test@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "9f8d21b9-ed48-4b1f-a2d4-7d96faafb434"
+      }
+    }
+  ],
+  "tags": [],
+  "parentFolder": null,
+  "activeVersion": {
+    "updatedAt": "2026-05-24T16:49:13.445Z",
+    "createdAt": "2026-05-24T16:49:13.445Z",
+    "versionId": "1fc5a0da-61de-4e03-ab52-cad4272a8d5e",
+    "workflowId": "ZdsYUJjX5SdPtawd",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "minutes",
+                "minutesInterval": 1
+              }
+            ]
+          }
+        },
+        "id": "a1b2c3d4-0001-4000-8000-000000000001",
+        "name": "Schedule Trigger",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          0,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "\ntry {\n  const raw = require('node:fs').readFileSync('/data/logs/logs.json', 'utf8');\n  const events = JSON.parse(raw);\n  const now = Date.now();\n  const windowMs = 60 * 1000;\n  const recent = events.filter(e => (now - new Date(e.timestamp).getTime()) < windowMs);\n  const total = recent.length;\n  const errors = recent.filter(e => e.status === 'error').length;\n  const error_rate = total > 0 ? errors / total : 0;\n  return [{ json: { error_rate: Math.round(error_rate * 1000) / 1000, total_events: total, error_events: errors, window_seconds: 60, feature_id: 'search_v2' } }];\n} catch (e) {\n  return [{ json: { error_rate: 0, total_events: 0, error_events: 0, window_seconds: 60, feature_id: 'search_v2', read_error: e.message } }];\n}\n"
+        },
+        "id": "a1b2c3d4-0001-4000-8000-000000000002",
+        "name": "Read & Analyze Logs",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          260,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "method": "GET",
+          "url": "http://host.docker.internal:5001/api/feature-flags",
+          "options": {}
+        },
+        "id": "a1b2c3d4-0001-4000-8000-000000000003",
+        "name": "Get Feature Status",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          520,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const logData = $input.first().json;\nconst allFeatures = $('Get Feature Status').first().json;\nconst featureId = logData.feature_id || 'search_v2';\nconst feature = allFeatures[featureId] || {};\nreturn [{ json: { ...logData, current_status: feature.status || 'unknown', current_traffic: feature.traffic_percentage || 0, feature_id: featureId } }];"
+        },
+        "id": "a1b2c3d4-0001-4000-8000-000000000004",
+        "name": "Merge Data",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          780,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict"
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.error_rate }}",
+                      "rightValue": 0.05,
+                      "operator": {
+                        "type": "number",
+                        "operation": "gt"
+                      }
+                    },
+                    {
+                      "leftValue": "={{ $json.current_status }}",
+                      "rightValue": "Disabled",
+                      "operator": {
+                        "type": "string",
+                        "operation": "notEquals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "deactivate"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict"
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.error_rate }}",
+                      "rightValue": 0.01,
+                      "operator": {
+                        "type": "number",
+                        "operation": "lt"
+                      }
+                    },
+                    {
+                      "leftValue": "={{ $json.current_status }}",
+                      "rightValue": "Disabled",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "reenable"
+              }
+            ]
+          },
+          "options": {
+            "fallbackOutput": "extra"
+          }
+        },
+        "id": "a1b2c3d4-0001-4000-8000-000000000005",
+        "name": "Decision",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3,
+        "position": [
+          1040,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "dec-deact",
+                "name": "decision",
+                "value": "deactivate",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {
+            "includeBinary": false
+          }
+        },
+        "id": "a1b2c3d4-0001-4000-8000-000000000006",
+        "name": "Set Decision Deactivate",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1300,
+          160
+        ]
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "dec-reen",
+                "name": "decision",
+                "value": "reenable",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {
+            "includeBinary": false
+          }
+        },
+        "id": "a1b2c3d4-0001-4000-8000-000000000007",
+        "name": "Set Decision Reenable",
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          1300,
+          440
+        ]
+      },
+      {
+        "parameters": {
+          "options": {
+            "maxIterations": 3,
+            "systemMessage": "=Goal:\n\u0417\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0438\u043d\u0446\u0438\u0434\u0435\u043d\u0442 \u0438\u043b\u0438 recovery \u0434\u043b\u044f feature {{$json.feature_id}}.\nDecision \u0438\u0437 upstream: {{$json.decision}} (deactivate | reenable).\n\nContext:\n- Decision \u0443\u0436\u0435 \u043f\u043e\u0441\u0447\u0438\u0442\u0430\u043d upstream (\u0432 Switch-\u043d\u043e\u0434\u0435) \u2014 \u0442\u0432\u043e\u044f \u0437\u0430\u0434\u0430\u0447\u0430 \u0432\u044b\u043f\u043e\u043b\u043d\u0438\u0442\u044c \u0440\u0435\u0448\u0435\u043d\u0438\u0435 \u0447\u0435\u0440\u0435\u0437 MCP.\n- Available tools: get_feature_info, set_feature_state.\n- \u041d\u0415 \u043f\u0440\u0438\u043d\u0438\u043c\u0430\u0439 \u0440\u0435\u0448\u0435\u043d\u0438\u0435 \u0441\u0430\u043c\u043e\u0441\u0442\u043e\u044f\u0442\u0435\u043b\u044c\u043d\u043e: \u0441\u043b\u0435\u0434\u0443\u0439 decision \u0438\u0437 payload.\n\nAction:\n1. \u0412\u044b\u0437\u043e\u0432\u0438 get_feature_info \u0434\u043b\u044f \u0430\u043a\u0442\u0443\u0430\u043b\u044c\u043d\u043e\u0433\u043e state.\n2. \u0415\u0441\u043b\u0438 decision=\"deactivate\": \u043f\u0440\u043e\u0432\u0435\u0440\u044c \u0447\u0442\u043e status != \"Disabled\" \u2192 set_feature_state(\"Disabled\") \u2192 verify.\n3. \u0415\u0441\u043b\u0438 decision=\"reenable\": \u043f\u0440\u043e\u0432\u0435\u0440\u044c \u0447\u0442\u043e status == \"Disabled\" \u2192 set_feature_state(\"Enabled\") \u2192 verify.\n4. \u0421\u0444\u043e\u0440\u043c\u0438\u0440\u0443\u0439 alert_message \u0434\u043b\u044f Telegram.\n\nOutput:\nJSON: { action_taken, previous_state, new_state, alert_message, error_rate_percent, threshold_used, reason }\n\nConstraints:\n- \u041d\u0415 \u0432\u044b\u0437\u044b\u0432\u0430\u0439 set_feature_state \u0435\u0441\u043b\u0438 state \u0443\u0436\u0435 \u0441\u043e\u043e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u0435\u0442 \u0446\u0435\u043b\u0435\u0432\u043e\u043c\u0443.\n- alert_message \u043d\u0430 \u0440\u0443\u0441\u0441\u043a\u043e\u043c: \ud83d\udea8 \u0434\u043b\u044f deactivate, \u2705 \u0434\u043b\u044f reenable."
+          },
+          "promptType": "define",
+          "text": "=Feature: {{$json.feature_id}}\nDecision: {{$json.decision}}\nError rate: {{$json.error_rate}}\nCurrent status: {{$json.current_status}}\nCurrent traffic: {{$json.current_traffic}}%\nTotal events: {{$json.total_events}}\nError events: {{$json.error_events}}"
+        },
+        "id": "a1b2c3d4-0001-4000-8000-000000000008",
+        "name": "AI Agent",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 2,
+        "position": [
+          1560,
+          300
+        ]
+      },
+      {
+        "parameters": {
+          "model": "claude-haiku-4-5-20251001",
+          "options": {}
+        },
+        "id": "a1b2c3d4-0001-4000-8000-000000000009",
+        "name": "Chat Model",
+        "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+        "typeVersion": 1,
+        "position": [
+          1480,
+          520
+        ],
+        "credentials": {
+          "anthropicApi": {
+            "id": "ln8Dcy6NApMnHpTO",
+            "name": "Anthropic Claude"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "chatId": "854243765",
+          "text": "={{ $json.output || $json.text || JSON.stringify($json) }}",
+          "additionalFields": {}
+        },
+        "id": "a1b2c3d4-0001-4000-8000-00000000000b",
+        "name": "Telegram Send Message",
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          1820,
+          300
+        ],
+        "webhookId": "76078e8c-57e0-4e5e-b957-a9ee253bb5b3",
+        "credentials": {
+          "telegramApi": {
+            "id": "LdYwpWGnxdqqrqaf",
+            "name": "Telegram ProShop Alerts"
+          }
+        }
+      },
+      {
+        "parameters": {},
+        "id": "a1b2c3d4-0001-4000-8000-00000000000c",
+        "name": "NoOp",
+        "type": "n8n-nodes-base.noOp",
+        "typeVersion": 1,
+        "position": [
+          1300,
+          640
+        ]
+      },
+      {
+        "parameters": {
+          "name": "get_feature_info",
+          "description": "Get current state of a feature flag. Input: JSON with feature_name (string).",
+          "method": "GET",
+          "url": "=http://host.docker.internal:5001/api/feature-flags/{{ $fromAI(\"feature_name\", \"The feature flag key\", \"string\") }}",
+          "placeholderDefinitions": {
+            "values": []
+          },
+          "sendBody": false
+        },
+        "id": "tool-http-get-info-2",
+        "name": "Get Feature Info",
+        "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+        "typeVersion": 1.1,
+        "position": [
+          1200,
+          700
+        ]
+      },
+      {
+        "parameters": {
+          "name": "set_feature_state",
+          "description": "Change the status of a feature flag. Input: JSON with feature_name (string) and state (string, one of Disabled/Testing/Enabled).",
+          "method": "POST",
+          "url": "http://host.docker.internal:5001/api/feature-flags/state",
+          "sendBody": true,
+          "specifyBody": "keypair",
+          "parametersBody": {
+            "values": [
+              {
+                "name": "feature_name",
+                "value": "={{ $fromAI(\"feature_name\", \"The feature flag key\", \"string\") }}"
+              },
+              {
+                "name": "state",
+                "value": "={{ $fromAI(\"state\", \"Target state: Disabled, Testing, or Enabled\", \"string\") }}"
+              }
+            ]
+          },
+          "placeholderDefinitions": {
+            "values": []
+          }
+        },
+        "id": "tool-http-set-state-2",
+        "name": "Set Feature State",
+        "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+        "typeVersion": 1.1,
+        "position": [
+          1200,
+          900
+        ]
+      }
+    ],
+    "connections": {
+      "Schedule Trigger": {
+        "main": [
+          [
+            {
+              "node": "Read & Analyze Logs",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Read & Analyze Logs": {
+        "main": [
+          [
+            {
+              "node": "Get Feature Status",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Feature Status": {
+        "main": [
+          [
+            {
+              "node": "Merge Data",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge Data": {
+        "main": [
+          [
+            {
+              "node": "Decision",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Decision": {
+        "main": [
+          [
+            {
+              "node": "Set Decision Deactivate",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Set Decision Reenable",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "NoOp",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set Decision Deactivate": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set Decision Reenable": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent": {
+        "main": [
+          [
+            {
+              "node": "Telegram Send Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Feature Info": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set Feature State": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "test test",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-24T16:49:13.836Z",
+        "id": 44,
+        "workflowId": "ZdsYUJjX5SdPtawd",
+        "versionId": "1fc5a0da-61de-4e03-ab52-cad4272a8d5e",
+        "event": "activated",
+        "userId": "9f8d21b9-ed48-4b1f-a2d4-7d96faafb434"
+      }
+    ]
+  },
+  "scopes": [
+    "workflow:create",
+    "workflow:delete",
+    "workflow:execute",
+    "workflow:execute-chat",
+    "workflow:list",
+    "workflow:move",
+    "workflow:publish",
+    "workflow:read",
+    "workflow:share",
+    "workflow:unpublish",
+    "workflow:unshare",
+    "workflow:update",
+    "workflow:updateRedactionSetting"
+  ],
+  "checksum": "8cc1c4bdc88d44d8c6f0f5abf77eb1f2e108a55cefd33db01f8a89f7041d024a"
+}
