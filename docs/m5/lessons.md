@@ -27,6 +27,7 @@
 - **Причина:** Подписка на claude.ai / ChatGPT Plus ≠ API доступ. API ключи — отдельные платформы, отдельные балансы.
 - **Решение:** Google Gemini — бесплатный API tier через aistudio.google.com, создаётся за 30 секунд.
 - **Урок:** Для домашних/учебных проектов рекомендовать Gemini как дефолт — нулевой порог входа.
+- **Обновление:** Gemini 429 rate limit → перешли на Anthropic Claude Haiku 4.5 (`claude-haiku-4-5-20251001`). Работает стабильно.
 
 ## 6. Секреты в плане: не хардкодить
 - **Проблема:** При автоматизации Telegram credentials токен и chat_id попали в PLAN_M5.md.
@@ -95,3 +96,52 @@
 - **Проблема:** Сгенерированный JSON workflow содержал ноды, которые не существуют в целевой инсталляции n8n.
 - **Цепочка ошибок:** toolMcp → не существует → замена на toolHttpRequest → нужна привязка credentials → через API.
 - **Урок:** Генерировать workflow JSON нужно с учётом конкретной версии n8n и установленных пакетов. Идеально: сначала получить список доступных нод через API (`GET /rest/node-types`), потом генерировать.
+
+## 17. toolHttpRequest: `parametersBody.values`, не `bodyParameters.values`
+
+- **Проблема:** POST-запросы из AI Agent tool отправляли пустое тело `{}` на бэкенд, хотя параметры были заданы.
+- **Причина:** Нода `toolHttpRequest` использует свой маппинг свойств, отличный от обычного `httpRequest`. Свойство тела называется `parametersBody.values` (не `bodyParameters.values` как в httpRequest).
+- **Диагностика:** Прочитал исходный код ноды внутри Docker-контейнера: `updateParametersAndOptions({ parametersPropertyName: 'parametersBody.values' })`.
+- **Попытки:** `specifyBody: "json"` с `jsonBody` выражением — `$fromAI` placeholders не резолвились. `specifyBody: "string"` с `body` — тоже пустой. Только `specifyBody: "keypair"` с `parametersBody.values` массивом работает.
+- **Решение:**
+  ```json
+  {
+    "specifyBody": "keypair",
+    "parametersBody": {
+      "values": [
+        {"name": "feature_name", "value": "={{ $fromAI('feature_name', '...', 'string') }}"},
+        {"name": "state", "value": "={{ $fromAI('state', '...', 'string') }}"}
+      ]
+    }
+  }
+  ```
+- **Урок:** Для `toolHttpRequest` (AI Agent tools) единственный надёжный способ передать тело — keypair формат с `parametersBody.values`. Документации на это нет — только чтение исходников.
+
+## 18. Structured Output Parser несовместим с Claude
+
+- **Проблема:** AI Agent с Claude возвращал `Model output doesn't fit required format`.
+- **Причина:** Structured Output Parser ожидает строгое следование JSON Schema, а Claude иногда обрамляет JSON в markdown code block или добавляет пояснения.
+- **Решение:** Удалил Structured Output Parser. Claude корректно возвращает JSON в markdown code block `\`\`\`json ... \`\`\``, что n8n парсит из `output` поля.
+- **Урок:** Для Claude лучше не использовать Structured Output Parser — достаточно инструкции в system prompt «верни JSON в формате ...». Claude следует инструкциям надёжнее, чем формальной схеме.
+
+## 19. POST-эндпоинты для feature flags: их не было
+
+- **Проблема:** toolHttpRequest отправлял POST на `/api/feature-flags/state` → 404.
+- **Причина:** Бэкенд имел только GET-маршруты (через MCP-сервер). POST-эндпоинтов для изменения состояния не было.
+- **Решение:** Добавили два маршрута в `backend/routes/featureFlagsRoutes.js`:
+  - `POST /api/feature-flags/state` — принимает `{feature_name, state}`, вызывает `set_feature_state`
+  - `POST /api/feature-flags/traffic` — принимает `{feature_name, percentage}`, вызывает `adjust_traffic_rollout`
+- **Урок:** MCP-сервер ≠ REST API. Для n8n нужны обычные HTTP-эндпоинты. MCP работает через stdio/SSE, а n8n toolHttpRequest — через HTTP.
+
+## 20. WF2: Telegram не отправляет — потому что Decision → Fallback
+
+- **Проблема:** WF2 исполняется каждую минуту (status: success), но ни одного сообщения в Telegram не приходит.
+- **Причина (цепочка):**
+  1. Симулятор `simulate_wf2.py` прекратил генерировать логи (работал как background job, завершился).
+  2. Code нода фильтрует `events.filter(e => (now - new Date(e.timestamp).getTime()) < windowMs)` — окно 60 секунд.
+  3. Все записи в `logs.json` старше 2+ часов → `recent = []` → `error_rate = 0, total_events = 0`.
+  4. Decision нода: `deactivate` требует `error_rate > 0.05`, `reenable` требует `error_rate < 0.01 AND status == Disabled`.
+  5. С `error_rate = 0` и `status = Testing` — ни одно условие не срабатывает → Fallback → NoOp.
+  6. AI Agent и Telegram Send Message никогда не выполняются.
+- **Решение:** Нужно перезапустить симулятор с error rate > 5% и дождаться, пока WF2 среагирует.
+- **Урок:** «Execution success» в n8n ≠ «полезная работа». Workflow может пройти Schedule → Code → Decision → Fallback и считается успешным, хотя бизнес-логика не сработала. Для мониторинга нужно проверять, какой именно output Decision выбрал.
