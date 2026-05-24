@@ -16,18 +16,24 @@
 
 ## WF1 Simulator
 
+API key is read from `frontend/.env` (`REACT_APP_N8N_API_KEY`), or pass via `--api-key` / env `N8N_API_KEY`.
+
 ```bash
 # Basic run (2 min, 10s interval, check→test→rollout→rollback cycle)
 python3 simulate_wf1.py \
   --webhook-url http://localhost:5678/webhook \
-  --api-key <your-key> \
+  --api-key $(grep REACT_APP_N8N_API_KEY ../../frontend/.env | cut -d= -f2-) \
   --duration 120 --interval 10
 
 # With hallucination test (every 7th request sends traffic_percentage=-50)
 python3 simulate_wf1.py \
   --webhook-url http://localhost:5678/webhook \
-  --api-key <your-key> \
+  --api-key $(grep REACT_APP_N8N_API_KEY ../../frontend/.env | cut -d= -f2-) \
   --include-invalid
+
+# Or use env var
+export N8N_API_KEY=$(grep REACT_APP_N8N_API_KEY ../../frontend/.env | cut -d= -f2-)
+python3 simulate_wf1.py --webhook-url http://localhost:5678/webhook
 
 # Full options
 python3 simulate_wf1.py --help
