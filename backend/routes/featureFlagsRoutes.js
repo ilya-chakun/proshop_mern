@@ -2,6 +2,7 @@ import express from 'express'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { protect, admin } from '../middleware/authMiddleware.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const FEATURES_PATH = path.resolve(__dirname, '..', 'features.json')
@@ -47,7 +48,7 @@ router.get('/:name', async (req, res, next) => {
 })
 
 // POST /api/feature-flags/state — change feature status
-router.post('/state', async (req, res, next) => {
+router.post('/state', protect, admin, async (req, res, next) => {
   try {
     console.log('POST /state body:', JSON.stringify(req.body))
     const { feature_name, state } = req.body
@@ -80,7 +81,7 @@ router.post('/state', async (req, res, next) => {
 })
 
 // POST /api/feature-flags/traffic — adjust traffic percentage
-router.post('/traffic', async (req, res, next) => {
+router.post('/traffic', protect, admin, async (req, res, next) => {
   try {
     const { feature_name } = req.body
     const percentage = Number(req.body.percentage)

@@ -1,6 +1,14 @@
 import asyncHandler from 'express-async-handler'
 import Product from '../models/productModel.js'
 
+/**
+ * Escapes special regex characters in a string to prevent ReDoS
+ * and regex injection when used with MongoDB $regex.
+ * @param {string} str - The raw user input string.
+ * @returns {string} The escaped string safe for use in RegExp.
+ */
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
 // @desc    Fetch all products
 // @route   GET /api/products
 // @access  Public
@@ -11,7 +19,7 @@ const getProducts = asyncHandler(async (req, res) => {
   const keyword = req.query.keyword
     ? {
         name: {
-          $regex: req.query.keyword,
+          $regex: escapeRegex(req.query.keyword),
           $options: 'i',
         },
       }
