@@ -1,5 +1,17 @@
 # AGENTS.md — AI Agent Rules for ProShop MERN
 
+## ⭐ START HERE — repo navigation
+
+**ALWAYS read `project-index.json` FIRST** at the start of every session.
+It contains: subprojects, system_folders, hard_rules, filesystem_tree.
+This file is faster than find / tree / ls, accurate, and machine-readable.
+
+## ⭐ Keeping project-index.json current — MANDATORY
+
+**ALWAYS** update `project-index.json` when creating/deleting/renaming files or folders.
+How: `python3 .opencode/scripts/update_project_index.py`
+For 4-step legacy analysis on new modules: see `docs/specs/` for past examples.
+
 ## 1. Overview
 
 This is a **legacy MERN e-commerce application** (ProShop) originally by Brad Traversy.

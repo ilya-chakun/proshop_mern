@@ -1,0 +1,252 @@
+{
+  "name": "proshop_mern",
+  "type": "e-commerce monorepo (MERN stack)",
+  "description": "Legacy MERN e-commerce app (ProShop) with AI layer — MCP servers for feature flags and documentation search, RAG query engine with Qdrant.",
+  "last_updated": "2026-05-25T15:00:23Z",
+  "tech_stack": {
+    "backend": "Node.js + Express 4 (ES Modules), Mongoose 5",
+    "frontend": "React 16 + Redux 4 + React-Bootstrap + React Router 5",
+    "database": "MongoDB (local Docker or Atlas)",
+    "auth": "JWT (jsonwebtoken + bcryptjs)",
+    "ai": "Python 3 — FastMCP, SentenceTransformers, Qdrant, CrossEncoder",
+    "payments": "PayPal (react-paypal-button-v2)",
+    "uploads": "Multer"
+  },
+  "subprojects": [
+    {
+      "path": "backend/",
+      "name": "Express API Server",
+      "lang": "JavaScript (ES Modules)",
+      "entry": "backend/server.js",
+      "description": "REST API: users, products, orders, uploads, feature flags"
+    },
+    {
+      "path": "frontend/",
+      "name": "React SPA",
+      "lang": "JavaScript (JSX)",
+      "entry": "frontend/src/index.js",
+      "description": "E-commerce UI with Redux state management"
+    },
+    {
+      "path": "ai/mcp-feature-flags/",
+      "name": "MCP Feature Flags Server",
+      "lang": "Python",
+      "entry": "ai/mcp-feature-flags/server.py",
+      "description": "FastMCP server for AI agents to read/write feature flags"
+    },
+    {
+      "path": "ai/mcp-search-docs/",
+      "name": "MCP Search Docs Server",
+      "lang": "Python",
+      "entry": "ai/mcp-search-docs/server.py",
+      "description": "FastMCP server for AI agents to search project documentation via RAG"
+    },
+    {
+      "path": "ai/rag/",
+      "name": "RAG Query Engine",
+      "lang": "Python",
+      "entry": "ai/rag/query.py",
+      "description": "Hybrid search (dense + BM25 + reranking) over Qdrant vector store"
+    }
+  ],
+  "system_folders": [
+    {
+      "path": ".opencode/",
+      "purpose": "OpenCode agent workspace (context, docs, todo)"
+    },
+    {
+      "path": "homework/",
+      "purpose": "Homework submissions, ADRs, lessons, coding standards"
+    },
+    {
+      "path": "homework-m6/",
+      "purpose": "M6 Agent-Controller homework deliverables (4 stages)"
+    },
+    {
+      "path": "uploads/",
+      "purpose": "User-uploaded product images (runtime, gitignored)"
+    },
+    {
+      "path": "docs/",
+      "purpose": "Living documentation — specs, ADRs, architecture"
+    },
+    {
+      "path": ".claude/agents/",
+      "purpose": "AI agent definitions for formal submission"
+    }
+  ],
+  "root_files": [
+    {
+      "file": "AGENTS.md",
+      "purpose": "AI agent rules and project conventions"
+    },
+    {
+      "file": "DESIGN.md",
+      "purpose": "System design document"
+    },
+    {
+      "file": "FINDINGS.md",
+      "purpose": "Code review findings"
+    },
+    {
+      "file": "README.md",
+      "purpose": "Project overview and setup"
+    },
+    {
+      "file": "report.md",
+      "purpose": "Main homework submission report"
+    },
+    {
+      "file": "project-index.json",
+      "purpose": "THIS FILE — machine-readable project map"
+    }
+  ],
+  "hard_rules": [
+    "ALWAYS read project-index.json FIRST at the start of every session",
+    "NEVER commit .env or any file containing real credentials",
+    "Use ES Module syntax (import/export) in backend code — no require()",
+    "Use express-async-handler for route error handling",
+    "NEVER edit backend/features.json directly — use MCP tools or Express API",
+    "Follow Conventional Commits: feat:, fix:, docs:, chore:, test:",
+    "Keep changes minimal and reviewable — this is a public homework fork"
+  ],
+  "ai_routing": [
+    {
+      "pattern": "feature flag questions (status, enable, disable, traffic)",
+      "target": "MCP feature-flags server (get_feature_info, set_feature_state, adjust_traffic_rollout, list_features)"
+    },
+    {
+      "pattern": "project documentation, architecture, design decisions, ADRs",
+      "target": "MCP search-docs server (search_project_docs)"
+    }
+  ],
+  "filesystem_tree": {
+    "backend/": {
+      "config/": {
+        "db.js": "db.js"
+      },
+      "controllers/": {
+        "orderController.js": "orderController.js",
+        "productController.js": "productController.js",
+        "userController.js": "userController.js"
+      },
+      "data/": {
+        "products.js": "products.js",
+        "users.js": "users.js"
+      },
+      "middleware/": {
+        "authMiddleware.js": "authMiddleware.js",
+        "errorMiddleware.js": "errorMiddleware.js"
+      },
+      "models/": {
+        "orderModel.js": "orderModel.js",
+        "productModel.js": "productModel.js",
+        "userModel.js": "userModel.js"
+      },
+      "routes/": {
+        "featureFlagsRoutes.js": "featureFlagsRoutes.js",
+        "orderRoutes.js": "orderRoutes.js",
+        "productRoutes.js": "productRoutes.js",
+        "uploadRoutes.js": "uploadRoutes.js",
+        "userRoutes.js": "userRoutes.js"
+      },
+      "utils/": {
+        "generateToken.js": "generateToken.js"
+      },
+      "features.json": "features.json",
+      "seeder.js": "seeder.js",
+      "server.js": "server.js"
+    },
+    "frontend/": {
+      "src/": {
+        "actions/": {
+          "cartActions.js": "cartActions.js",
+          "orderActions.js": "orderActions.js",
+          "productActions.js": "productActions.js",
+          "userActions.js": "userActions.js"
+        },
+        "components/": {
+          "AutoPilotControls.js": "AutoPilotControls.js",
+          "CheckoutSteps.js": "CheckoutSteps.js",
+          "Footer.js": "Footer.js",
+          "FormContainer.js": "FormContainer.js",
+          "Header.js": "Header.js",
+          "Loader.js": "Loader.js",
+          "Message.js": "Message.js",
+          "Meta.js": "Meta.js",
+          "Paginate.js": "Paginate.js",
+          "Product.js": "Product.js",
+          "ProductCarousel.js": "ProductCarousel.js",
+          "Rating.js": "Rating.js",
+          "SearchBox.js": "SearchBox.js"
+        },
+        "constants/": {
+          "cartConstants.js": "cartConstants.js",
+          "orderConstants.js": "orderConstants.js",
+          "productConstants.js": "productConstants.js",
+          "userConstants.js": "userConstants.js"
+        },
+        "reducers/": {
+          "cartReducers.js": "cartReducers.js",
+          "orderReducers.js": "orderReducers.js",
+          "productReducers.js": "productReducers.js",
+          "userReducers.js": "userReducers.js"
+        },
+        "screens/": {
+          "CartScreen.js": "CartScreen.js",
+          "FeatureDashboardScreen.js": "FeatureDashboardScreen.js",
+          "HomeScreen.js": "HomeScreen.js",
+          "LoginScreen.js": "LoginScreen.js",
+          "OrderListScreen.js": "OrderListScreen.js",
+          "OrderScreen.js": "OrderScreen.js",
+          "PaymentScreen.js": "PaymentScreen.js",
+          "PlaceOrderScreen.js": "PlaceOrderScreen.js",
+          "ProductEditScreen.js": "ProductEditScreen.js",
+          "ProductListScreen.js": "ProductListScreen.js",
+          "ProductScreen.js": "ProductScreen.js",
+          "ProfileScreen.js": "ProfileScreen.js",
+          "RegisterScreen.js": "RegisterScreen.js",
+          "ShippingScreen.js": "ShippingScreen.js",
+          "UserEditScreen.js": "UserEditScreen.js",
+          "UserListScreen.js": "UserListScreen.js"
+        },
+        "App.js": "App.js",
+        "bootstrap.min.css": "bootstrap.min.css",
+        "index.css": "index.css",
+        "index.js": "index.js",
+        "serviceWorker.js": "serviceWorker.js",
+        "store.js": "store.js"
+      }
+    },
+    "ai/": {
+      "mcp-feature-flags/": {
+        "__pycache__/": {
+          "server.cpython-313.pyc": "server.cpython-313.pyc"
+        },
+        "server.py": "server.py"
+      },
+      "mcp-search-docs/": {
+        "__pycache__/": {
+          "server.cpython-313.pyc": "server.cpython-313.pyc"
+        },
+        "server.py": "server.py"
+      },
+      "rag/": {
+        "__pycache__/": {
+          "__init__.cpython-313.pyc": "__init__.cpython-313.pyc",
+          "config.cpython-313.pyc": "config.cpython-313.pyc",
+          "evaluate_optional.cpython-313.pyc": "evaluate_optional.cpython-313.pyc",
+          "ingest.cpython-313.pyc": "ingest.cpython-313.pyc",
+          "query.cpython-313.pyc": "query.cpython-313.pyc"
+        },
+        "__init__.py": "__init__.py",
+        "config.py": "config.py",
+        "evaluate_optional.py": "evaluate_optional.py",
+        "export_chunks.py": "export_chunks.py",
+        "ingest.py": "ingest.py",
+        "query.py": "query.py",
+        "test-queries.log": "test-queries.log"
+      }
+    }
+  }
+}
