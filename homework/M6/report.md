@@ -1,6 +1,5 @@
 # M6 — Агент-Контролёр: Отчёт
 
-**Студент:** Илья Чакун
 **Ветка:** `homework/m6-agent-controller`
 **Инструмент:** OpenCode (multi-agent orchestration) вместо Claude Code
 **Дата:** 2026-05-25

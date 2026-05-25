@@ -44,6 +44,40 @@
 
 ---
 
+## Pre-requisites (before Stage 1)
+
+> **🔴 Fix #1, #2**: Agent files and scripts don't exist locally yet.
+
+- [ ] **P0.1** Create `.claude/agents/` with 3 review agent definitions for grading compatibility.
+  Source: cached prompts in `.opencode/docs/raw_githubusercontent_com_Serg1kk_aidev-course-materials_main_M6_agents_*.md`.
+  Copy content into:
+  - `.claude/agents/security-mate.md`
+  - `.claude/agents/performance-mate.md`
+  - `.claude/agents/architecture-mate.md`
+
+- [ ] **P0.2** Create `.claude/agents/legacy-auditor-mate.md` and `.claude/agents/test-writer-mate.md` (for Stage 3/4).
+
+- [ ] **P0.3** `update_project_index.py` — write from scratch (NOT copy from `aidev-course-materials/`).
+  The course repo example is cached in `.opencode/docs/` as reference, but `aidev-course-materials/` is NOT cloned locally.
+  Adapt WATCH_PATHS to: `("backend/", "frontend/src/", "ai/mcp-feature-flags/", "ai/mcp-search-docs/", "ai/rag/")`.
+
+- [ ] **P0.4** Create `homework-m6/` deliverables folder structure (all 4 stage subdirs).
+
+> **🟡 Fix #3**: OpenCode execution model.
+> Throughout this plan, all "agent prompts" are executed via `delegate_task(agent: "Worker", prompt: "<full prompt text>")`.
+> We do NOT spawn agents from .md files — OpenCode doesn't support that.
+> `.claude/agents/*.md` exist solely as grading artifacts.
+
+> **🟡 Fix #5**: `docs-audit.template.md` is cached in `.opencode/docs/raw_githubusercontent_com_..._temp.md`.
+> We'll read the cached version when executing S3.2.
+
+> **🟡 Fix #8**: Stage 5 is our addition (not in the assignment). Marked as OPTIONAL/BONUS.
+
+> **🟢 Fix #9**: `docs/` does not exist at root. Stage 3 creates it from scratch.
+> All `docs/specs/`, `docs/adr/` paths in Stage 3 refer to NEW directories created during that stage.
+
+---
+
 ## Stage 1 — Multi-Agent Code Review (~1.5-2h)
 
 ### Scope
@@ -170,6 +204,12 @@ homework-m6/stage1-code-review/
 
 Depends on: Stage 1 synthesis.md Top-3 list
 
+> **🟡 Fix #4**: Top-3 selection criteria (applied AFTER Stage 1 produces synthesis.md):
+> 1. Prioritize HIGH severity findings
+> 2. Prefer findings that span multiple review dimensions (cross-mate)
+> 3. Prefer findings with clear, bounded fixes (< 200 lines)
+> 4. Mix: at least 1 security + 1 non-security finding
+
 ### Steps (repeat for each of 3 findings)
 
 - [ ] **S2.1** Characterization tests BEFORE fix (pin current behavior)
@@ -272,8 +312,9 @@ homework-m6/stage2-fix-top3/
   - Checkboxes updated as work progresses
 
 - [ ] **S3.4** Per-module reverse engineering (4-step pattern) on 2 modules
-  - **Module 1**: `ai/mcp-feature-flags/server.py` (MCP feature flags server)
-  - **Module 2**: `ai/mcp-search-docs/server.py` (MCP search docs server)
+  - **Module 1**: `ai/mcp-feature-flags/server.py` (237 lines, MCP feature flags server)
+  - **Module 2**: `ai/rag/query.py` (290 lines, RAG query engine)
+  - ~~`ai/mcp-search-docs/server.py`~~ — only 67 lines, too small for meaningful 4-step analysis (🟡 Fix #6)
   - These same modules reused in Stage 4 for test generation
 
   **4-step pattern per module:**
@@ -351,10 +392,11 @@ homework-m6/stage2-fix-top3/
   ```
 
 - [ ] **S3.8** Archive old docs (only 📦 HISTORICAL and ❌ STALE per audit verdicts)
-  - Move to `docs-archived-YYYY-MM-DD/` in repo root
-  - Keep ADRs intact — NEVER archive ADRs
-  - Keep AGENTS.md, DESIGN.md, FINDINGS.md at root
-  - ✅ ACCURATE and 🔄 PARTIALLY docs -> copy to new docs/ structure
+  - > **🟡 Fix #7**: Docs live in `homework/`, not `docs/`. Archive scope:
+  -   Only `homework/` items marked 📦 or ❌ move to `homework/archived-2026-05-25/`
+  -   Root files (AGENTS.md, DESIGN.md, FINDINGS.md, README.md) stay at root — NEVER archive
+  -   ADRs (`homework/adr/`) are NEVER archived — copy into new `docs/adr/`
+  -   ✅ ACCURATE docs stay in place; 🔄 PARTIALLY ACCURATE docs get updated in place or copied to `docs/`
 
 - [ ] **S3.9** Copy everything to submission folder
 
@@ -435,16 +477,16 @@ OpenCode (`opencode.json`) does not support PostToolUse hooks like Claude Code.
   Use pytest. Match the project's existing test style.
   ```
 
-- [ ] **S4.3** Generate tests for Service 2: `ai/mcp-search-docs/server.py`
+- [ ] **S4.3** Generate tests for Service 2: `ai/rag/query.py`
   - >= 5 tests: 1 happy path + 2-3 edge cases + 1-2 error paths
   - Use pytest
-  - Reference spec from Stage 3: `docs/specs/mcp-search-docs-spec.md`
+  - Reference spec from Stage 3: `docs/specs/rag-query-spec.md`
   - Same quality requirements as S4.2
 
 - [ ] **S4.4** Run all tests, capture output
   ```bash
-  pytest ai/mcp-feature-flags/__tests__/ -v
-  pytest ai/mcp-search-docs/__tests__/ -v
+   pytest ai/mcp-feature-flags/__tests__/ -v
+   pytest ai/rag/tests/ -v
   ```
   - If tests fail: determine if test is wrong or code is buggy
   - If test wrong -> fix test
@@ -476,7 +518,7 @@ OpenCode (`opencode.json`) does not support PostToolUse hooks like Claude Code.
 homework-m6/stage4-tests-agent/
   test-writer-mate.md              (copy of agent definition)
   service-1-tests/                 (MCP feature flags tests)
-  service-2-tests/                 (MCP search docs tests)
+  service-2-tests/                 (RAG query engine tests)
   coverage-report.png              (test run output/screenshot)
   # Optional (senior bonus):
   starting_msi.txt
@@ -498,7 +540,7 @@ homework-m6/stage4-tests-agent/
 
 ---
 
-## Stage 5 — Final Submission Preparation
+## Stage 5 — Final Submission Preparation (OUR ADDITION, not in assignment)
 
 - [ ] **S5.1** Verify all deliverables exist in `homework-m6/` with correct structure
 - [ ] **S5.2** Ensure all git commits are clean (conventional commits)
@@ -555,7 +597,7 @@ homework-m6/
 - **No docs/ folder at root**: Stage 3 creates `docs/` with specs, adr (from homework/adr/), architecture.
 - **Credentials note**: `homework/M5/credentials/` is local-only (gitignored), not a security finding.
 - **JSONL findings**: Required by checklist — included in Stage 1.
-- **4-step reverse engineering**: `ai/mcp-feature-flags/server.py` and `ai/mcp-search-docs/server.py` — same modules in Stage 4 for tests.
+- **4-step reverse engineering**: `ai/mcp-feature-flags/server.py` and `ai/rag/query.py` — same modules in Stage 4 for tests.
 - **Hooks**: OpenCode has no PostToolUse hooks. `.claude/settings.json` created as reference. update_project_index.py runs standalone only. Marked optional in homework.
 - **Mutation testing**: Added as optional S4.5 with mutmut (Python). Target MSI > 70%.
 - **Prompt templates**: Included from homework spec for each stage — adapted with our fork paths.
