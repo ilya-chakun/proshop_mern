@@ -2,7 +2,7 @@
   "name": "proshop_mern",
   "type": "e-commerce monorepo (MERN stack)",
   "description": "Legacy MERN e-commerce app (ProShop) with AI layer — MCP servers for feature flags and documentation search, RAG query engine with Qdrant.",
-  "last_updated": "2026-06-05T18:48:32Z",
+  "last_updated": "2026-06-05T19:17:21Z",
   "tech_stack": {
     "backend": "Node.js + Express 4 (ES Modules), Mongoose 5",
     "frontend": "React 16 + Redux 4 + React-Bootstrap + React Router 5",

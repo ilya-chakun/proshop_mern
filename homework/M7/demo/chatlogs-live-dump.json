@@ -1,0 +1,261 @@
+{
+  "generatedAt": "2026-06-05T19:10:27.450Z",
+  "mode": "live",
+  "count": 8,
+  "logs": [
+    {
+      "_id": "6a231e261b04f741f61f17b2",
+      "model": "qwen3:8b-q8_0",
+      "response": "Yes, we have the Airpods Wireless Bluetooth Headphones in stock! They are priced at $89.99 and there are 3 units available. Let me know if you'd like to proceed with a purchase!",
+      "latencyMs": 32355,
+      "costUsd": 0.001199,
+      "promptTokens": 862,
+      "completionTokens": 512,
+      "mode": "live",
+      "user": "6a231e061b04f741f61f17aa",
+      "userName": "John Doe",
+      "message": "Do you have the Airpods Wireless Bluetooth Headphones in stock?",
+      "detectedPII": [],
+      "route": "cloud",
+      "reason": "CLOUD — no PII and no private-data intent; public catalog question.",
+      "toolCalls": [
+        {
+          "name": "getProducts",
+          "args": {
+            "query": "Airpods Wireless Bluetooth Headphones"
+          }
+        }
+      ],
+      "createdAt": "2026-06-05T19:06:14.827Z",
+      "updatedAt": "2026-06-05T19:06:14.827Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a231e401b04f741f61f17b3",
+      "model": "qwen3:8b-q8_0",
+      "response": "The **Sony Playstation 4 Pro White Version** is priced at **$399.99**. It's available in stock with 10 units remaining. Let me know if you'd like assistance with purchasing or further details! 🎮",
+      "latencyMs": 25715,
+      "costUsd": 0.001053,
+      "promptTokens": 858,
+      "completionTokens": 416,
+      "mode": "live",
+      "user": "6a231e061b04f741f61f17aa",
+      "userName": "John Doe",
+      "message": "What's the price of the Sony Playstation 4 Pro?",
+      "detectedPII": [],
+      "route": "cloud",
+      "reason": "CLOUD — no PII and no private-data intent; public catalog question.",
+      "toolCalls": [
+        {
+          "name": "getProducts",
+          "args": {
+            "query": "Sony Playstation 4 Pro"
+          }
+        }
+      ],
+      "createdAt": "2026-06-05T19:06:40.589Z",
+      "updatedAt": "2026-06-05T19:06:40.589Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a231e621b04f741f61f17b4",
+      "model": "qwen3:8b-q8_0",
+      "response": "It seems there are no products matching \"Logitech gaming mouse\" in our public catalog. Would you like me to search for similar products or check a different category? For example, we might find gaming mice from Logitech in the \"Gaming Peripherals\" category.",
+      "latencyMs": 33448,
+      "costUsd": 0.001203,
+      "promptTokens": 815,
+      "completionTokens": 530,
+      "mode": "live",
+      "user": "6a231e061b04f741f61f17aa",
+      "userName": "John Doe",
+      "message": "Tell me about the Logitech gaming mouse.",
+      "detectedPII": [],
+      "route": "cloud",
+      "reason": "CLOUD — no PII and no private-data intent; public catalog question.",
+      "toolCalls": [
+        {
+          "name": "getProducts",
+          "args": {
+            "query": "Logitech gaming mouse"
+          }
+        }
+      ],
+      "createdAt": "2026-06-05T19:07:14.040Z",
+      "updatedAt": "2026-06-05T19:07:14.040Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a231eca1b04f741f61f17b5",
+      "model": "qwen3:8b-q8_0",
+      "response": "<error>\nThe email address provided (jane@example.com) does not match the email on file for your account (john@example.com). I cannot resend receipts as this functionality is not available through the provided tools. Would you like me to help you find another way to access your order details?\n</error>",
+      "latencyMs": 104415,
+      "costUsd": 0,
+      "promptTokens": 835,
+      "completionTokens": 1644,
+      "mode": "live",
+      "user": "6a231e061b04f741f61f17aa",
+      "userName": "John Doe",
+      "message": "My email is jane@example.com — can you resend my last receipt?",
+      "detectedPII": [
+        {
+          "type": "email",
+          "masked": "j***@example.com"
+        },
+        {
+          "type": "intent",
+          "masked": "my-data"
+        },
+        {
+          "type": "intent",
+          "masked": "order-action"
+        }
+      ],
+      "route": "local",
+      "reason": "LOCAL — detected email, intent; must stay on-device (no leak to cloud).",
+      "toolCalls": [
+        {
+          "name": "getMyProfile"
+        }
+      ],
+      "createdAt": "2026-06-05T19:08:58.462Z",
+      "updatedAt": "2026-06-05T19:08:58.462Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a231eee1b04f741f61f17b6",
+      "model": "qwen3:8b-q8_0",
+      "response": "It looks like there are no orders associated with your account at this time. Please check that you've placed an order, or feel free to reach out to our support team if you need assistance tracking a specific shipment. Let me know how I can help!",
+      "latencyMs": 35678,
+      "costUsd": 0,
+      "promptTokens": 840,
+      "completionTokens": 579,
+      "mode": "live",
+      "user": "6a231e061b04f741f61f17aa",
+      "userName": "John Doe",
+      "message": "My phone number is 415-555-0132, did my order ship yet?",
+      "detectedPII": [
+        {
+          "type": "phone",
+          "masked": "***0132"
+        },
+        {
+          "type": "intent",
+          "masked": "my-data"
+        },
+        {
+          "type": "intent",
+          "masked": "my-data"
+        }
+      ],
+      "route": "local",
+      "reason": "LOCAL — detected phone, intent; must stay on-device (no leak to cloud).",
+      "toolCalls": [
+        {
+          "name": "getMyOrders"
+        }
+      ],
+      "createdAt": "2026-06-05T19:09:34.145Z",
+      "updatedAt": "2026-06-05T19:09:34.145Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a231efb1b04f741f61f17b7",
+      "model": "qwen3:8b-q8_0",
+      "response": "I don't have access to check saved payment information through the available tools. For security reasons, I recommend contacting ProShop's customer support team directly to verify your saved card details. Would you like me to help you find their contact information?",
+      "latencyMs": 13566,
+      "costUsd": 0,
+      "promptTokens": 411,
+      "completionTokens": 211,
+      "mode": "live",
+      "user": "6a231e061b04f741f61f17aa",
+      "userName": "John Doe",
+      "message": "Is the card 4111 1111 1111 1111 the one saved on my account?",
+      "detectedPII": [
+        {
+          "type": "card",
+          "masked": "***1111"
+        },
+        {
+          "type": "intent",
+          "masked": "my-data"
+        }
+      ],
+      "route": "local",
+      "reason": "LOCAL — detected card, intent; must stay on-device (no leak to cloud).",
+      "toolCalls": [],
+      "createdAt": "2026-06-05T19:09:47.721Z",
+      "updatedAt": "2026-06-05T19:09:47.721Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a231f101b04f741f61f17b8",
+      "model": "qwen3:8b-q8_0",
+      "response": "It looks like there are no orders found for your account. Could you please double-check your order details or confirm if you've placed any orders recently? I'm here to help with any other questions you might have!",
+      "latencyMs": 21261,
+      "costUsd": 0,
+      "promptTokens": 802,
+      "completionTokens": 327,
+      "mode": "live",
+      "user": "6a231e061b04f741f61f17aa",
+      "userName": "John Doe",
+      "message": "Where is my order?",
+      "detectedPII": [
+        {
+          "type": "intent",
+          "masked": "my-data"
+        },
+        {
+          "type": "intent",
+          "masked": "order-status"
+        }
+      ],
+      "route": "local",
+      "reason": "LOCAL — detected intent; must stay on-device (no leak to cloud).",
+      "toolCalls": [
+        {
+          "name": "getMyOrders"
+        }
+      ],
+      "createdAt": "2026-06-05T19:10:08.989Z",
+      "updatedAt": "2026-06-05T19:10:08.989Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a231f231b04f741f61f17b9",
+      "model": "qwen3:8b-q8_0",
+      "response": "The email address on your profile is **john@example.com**. Let me know if you need further assistance!",
+      "latencyMs": 18439,
+      "costUsd": 0,
+      "promptTokens": 825,
+      "completionTokens": 311,
+      "mode": "live",
+      "user": "6a231e061b04f741f61f17aa",
+      "userName": "John Doe",
+      "message": "What's the email address on my profile?",
+      "detectedPII": [
+        {
+          "type": "intent",
+          "masked": "my-data"
+        }
+      ],
+      "route": "local",
+      "reason": "LOCAL — detected intent; must stay on-device (no leak to cloud).",
+      "toolCalls": [
+        {
+          "name": "getMyProfile"
+        }
+      ],
+      "createdAt": "2026-06-05T19:10:27.431Z",
+      "updatedAt": "2026-06-05T19:10:27.431Z",
+      "__v": 0
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "localCount": 5,
+    "cloudCount": 3,
+    "realModel": "qwen3:8b-q8_0",
+    "endpoint": "http://localhost:11434/v1",
+    "note": "All turns executed by the real local model. Cloud-routed turns ran on the local model as a fallback (no OpenRouter key); routing decisions are the real router output."
+  }
+}
