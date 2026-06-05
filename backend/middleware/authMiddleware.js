@@ -16,6 +16,15 @@ const protect = asyncHandler(async (req, res, next) => {
 
       req.user = await User.findById(decoded.id).select('-password')
 
+      // The token signature can be valid while the user no longer exists
+      // (e.g. the DB was re-seeded with new _ids). Guard against a null user
+      // here so downstream handlers get a clear 401 instead of crashing with
+      // a confusing 500 on `req.user._id`.
+      if (!req.user) {
+        res.status(401)
+        throw new Error('Not authorized, user no longer exists')
+      }
+
       next()
     } catch (error) {
       console.error(error)

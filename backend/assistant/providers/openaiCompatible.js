@@ -37,7 +37,9 @@ export const openaiChat = async ({
   tools,
   extraHeaders = {},
   fetchImpl = globalThis.fetch,
-  timeoutMs = 60000,
+  // Default request timeout. Configurable via ASSISTANT_TIMEOUT_MS so slow
+  // local models (e.g. thinking models like qwen3) don't 500 on agentic turns.
+  timeoutMs = Number(process.env.ASSISTANT_TIMEOUT_MS) || 60000,
 }) => {
   if (typeof fetchImpl !== 'function') {
     throw new Error(

@@ -183,6 +183,29 @@ pkill -f "react-scripts start"
 lsof -ti :5001 :3000 | xargs kill -9
 ```
 
+### Issue 5: Chat widget returns HTTP 500 (slow local model timeout)
+
+**Symptom:** Assistant chat works for short turns but the widget shows
+"Sorry — something went wrong." on agentic/catalog turns. Backend log shows
+`POST /api/assistant/chat 500` after ~60s.
+
+**Root Cause:** `qwen3:8b` is a slow "thinking" model. Agentic turns (with
+tool calls) exceed the provider's hardcoded 60s request timeout in
+`backend/assistant/providers/openaiCompatible.js`, which aborts and 500s.
+Verified: a "what products under $100" turn takes ~78s.
+
+**Fix:** The provider default timeout is now configurable via env. Set in `.env`:
+```
+ASSISTANT_TIMEOUT_MS=240000
+```
+`openaiChat` reads `Number(process.env.ASSISTANT_TIMEOUT_MS) || 60000`, so both
+the local and cloud(-as-local) routes get the longer budget. Restart the
+backend (nodemon reloads `.env` on any backend file change). Verified: same
+turn returns HTTP 200 at ~78s; all 69 jest tests still pass.
+
+> Note: short cold-start 500s (~5–12ms, content-length 1061) are a separate
+> first-request hiccup; warming the model with one request avoids them.
+
 ### Final Startup Output
 ```
 Server running in development mode on port 5001
