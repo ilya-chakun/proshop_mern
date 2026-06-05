@@ -289,7 +289,7 @@ prompt. Two attack vectors, two honesty levels:
       **relative** `/api/assistant/chat` with `Authorization: Bearer ${userInfo.token}`, renders reply + route badge. · L
   - *Accept:* widget hidden when logged-out; in jsdom test with **mocked `fetch`**, sends authed request and renders reply. ✓ (3 jsdom tests green: logged-out→null, authed POST+reply+route badge, error path)
 - [x] **T5.2** `[AUTO]` Mount `<ChatWidget/>` globally in `App.js` (inside Router, after `<Header/>`). · S
-- [ ] **T5.3** `[STRETCH]` Polish per `DESIGN.md` tokens (`--ps-*` vars already used in dashboard). · S
+- [x] **T5.3** `[STRETCH]` Polish per `DESIGN.md` tokens (`--ps-*` vars already used in dashboard; fixed undefined `--ps-bg-muted` → `--ps-bg` in ChatWidget so all tokens resolve). · S
 
 ### M6 — Demo + DZ1 writeup · rubric: demo + 1 pt analysis
 - [x] **T6.1** `[AUTO]` `demo/run-demo.mjs`: fires `demo/queries.json` through the API, saves

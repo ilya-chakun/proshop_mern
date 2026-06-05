@@ -135,7 +135,7 @@ const ChatWidget = () => {
                     background:
                       m.from === 'user'
                         ? 'var(--ps-primary, #0d6efd)'
-                        : 'var(--ps-bg-muted, #f1f1f1)',
+                        : 'var(--ps-bg, #f1f1f1)',
                     color: m.from === 'user' ? '#fff' : 'inherit',
                   }}
                 >
