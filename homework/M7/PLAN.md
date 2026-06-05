@@ -344,7 +344,7 @@ prompt. Two attack vectors, two honesty levels:
 - [x] **T8.6** `[LIVE]` **Go-Live verification** (Reviewer-guided human): execute §2C live runs, confirm
       `0-deploy.md` real log, `transcript-live.json`, and `dz2/before-live.json` are populated. · M
   - *Accept:* ✓ Local Go-Live complete: real Ollama endpoint up (0.30.5), `0-deploy.md` real call log populated, `demo/transcript-live.json` + `demo/chatlogs-live-dump.json` populated (5 real local turns), `dz2/before-live.json` populated (real-model leak). Real CLOUD leg remains pending a user-supplied `OPENROUTER_API_KEY`; cloud turns currently run on the local model as a labeled fallback and the production swap is one line (README §2C).
-- [ ] **T8.7** `[AUTO]` Conventional commits per milestone; nothing secret staged. · S
+- [x] **T8.7** `[AUTO]` Conventional commits per milestone; nothing secret staged. · S
 
 ---
 
