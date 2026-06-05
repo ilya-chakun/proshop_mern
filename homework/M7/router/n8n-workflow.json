@@ -43,7 +43,7 @@
         "url": "http://localhost:11434/v1/chat/completions",
         "options": {}
       },
-      "name": "LOCAL model (Ollama qwen3:8b-q6_K)",
+      "name": "LOCAL model (Ollama qwen3:8b-q8_0)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
       "position": [960, 200]
@@ -68,7 +68,7 @@
     },
     "IF has PII?": {
       "main": [
-        [{ "node": "LOCAL model (Ollama qwen3:8b-q6_K)", "type": "main", "index": 0 }],
+        [{ "node": "LOCAL model (Ollama qwen3:8b-q8_0)", "type": "main", "index": 0 }],
         [{ "node": "CLOUD model (OpenRouter)", "type": "main", "index": 0 }]
       ]
     }

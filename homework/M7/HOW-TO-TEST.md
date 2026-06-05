@@ -45,11 +45,11 @@ cat homework/M7/0-deploy.md
 **Manual live check (requires Ollama running):**
 ```bash
 ollama serve &                       # start local endpoint
-ollama pull qwen3:8b-q6_K            # EXPLICIT quant (Q4 default breaks tools)
+ollama pull qwen3:8b-q8_0           # EXPLICIT non-default quant (Q4 default breaks tools)
 # confirm OpenAI-compatible endpoint answers:
 curl http://localhost:11434/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -d '{"model":"qwen3:8b-q6_K","messages":[{"role":"user","content":"hi"}]}'
+  -d '{"model":"qwen3:8b-q8_0","messages":[{"role":"user","content":"hi"}]}'
 ```
 ✅ Pass = `0-deploy.md` has all 5 fields **and** a captured real request/response
 transcript (not the "PENDING LIVE RUN" placeholder).

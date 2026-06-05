@@ -105,7 +105,7 @@ describe('openai-compatible normalization (injected fetch, no network)', () => {
       status: 200,
       statusText: 'OK',
       json: async () => ({
-        model: 'qwen3:8b-q6_K',
+        model: 'qwen3:8b-q8_0',
         choices: [
           {
             message: {

@@ -23,7 +23,7 @@ A shopping assistant for ProShop that:
 
 | Decision | Choice | Why |
 |----------|--------|-----|
-| Deploy path | **Local Ollama** (`qwen3:8b-q6_K`) | Free, on-device, keeps PII off third-party clouds. |
+| Deploy path | **Local Ollama** (`qwen3:8b-q8_0`) | Free, on-device, keeps PII off third-party clouds. Explicit non-default quant (q6_K isn't published on the Ollama registry, so q8_0 — one step up — is used; both clear the >Q4 floor that the homework warns about for tool-calling/Russian). |
 | Cloud provider | **OpenRouter** (OpenAI-compatible) | One adapter (`providers/openaiCompatible.js`) serves both local + cloud. |
 | Router | **Code, not LLM** (`router.js` + `pii.js`) | Deterministic, GPU-free, fail-safe, auditable — can't be "talked out of" routing PII local. |
 | Tool scope | **Session-bound `TRUSTED_UID`** | Model can't widen scope; the primary DZ2 defense (defend *actions*, not *answers*). |
@@ -48,7 +48,7 @@ node homework/M7/dz2/attack.mjs   # DZ2 structural attack → before-structural.
 #   PROVIDER_MODE=live
 #   OLLAMA_BASE_URL=http://localhost:11434/v1
 #   OPENROUTER_API_KEY=sk-or-...        (cloud)
-ollama pull qwen3:8b-q6_K
+ollama pull qwen3:8b-q8_0
 npm run dev              # backend :5001 + frontend; log in, open the chat widget
 ```
 
