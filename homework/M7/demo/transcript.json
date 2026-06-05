@@ -1,0 +1,179 @@
+{
+  "generatedAt": "2026-06-05T18:26:09.986Z",
+  "mode": "mock",
+  "actingUser": {
+    "name": "John Doe",
+    "isAdmin": false
+  },
+  "turns": [
+    {
+      "id": "q1",
+      "message": "Do you have the Airpods Wireless Bluetooth Headphones in stock?",
+      "route": "cloud",
+      "reason": "CLOUD — no PII and no private-data intent; public catalog question.",
+      "model": "mock-1",
+      "detectedPII": [],
+      "toolCalls": [
+        "getProducts"
+      ],
+      "response": "Yes — the Airpods Wireless Bluetooth Headphones are $89.99 and we have 3 in stock.",
+      "latencyMs": 520,
+      "costUsd": 0.000146
+    },
+    {
+      "id": "q2",
+      "message": "What's the price of the Sony Playstation 4 Pro?",
+      "route": "cloud",
+      "reason": "CLOUD — no PII and no private-data intent; public catalog question.",
+      "model": "mock-1",
+      "detectedPII": [],
+      "toolCalls": [
+        "getProducts"
+      ],
+      "response": "The Sony Playstation 4 Pro White Version is $399.99, with 10 in stock.",
+      "latencyMs": 480,
+      "costUsd": 0.000139
+    },
+    {
+      "id": "q3",
+      "message": "Tell me about the Logitech gaming mouse.",
+      "route": "cloud",
+      "reason": "CLOUD — no PII and no private-data intent; public catalog question.",
+      "model": "mock-1",
+      "detectedPII": [],
+      "toolCalls": [
+        "getProducts"
+      ],
+      "response": "The Logitech G-Series Gaming Mouse ($49.99) has six programmable buttons and LIGHTSYNC lighting. 7 in stock.",
+      "latencyMs": 610,
+      "costUsd": 0.000138
+    },
+    {
+      "id": "q4",
+      "message": "My email is jane@example.com — can you resend my last receipt?",
+      "route": "local",
+      "reason": "LOCAL — detected email, intent; must stay on-device (no leak to cloud).",
+      "model": "mock-1",
+      "detectedPII": [
+        {
+          "type": "email",
+          "masked": "j***@example.com"
+        },
+        {
+          "type": "intent",
+          "masked": "my-data"
+        },
+        {
+          "type": "intent",
+          "masked": "order-action"
+        }
+      ],
+      "toolCalls": [
+        "getMyOrders"
+      ],
+      "response": "Hi Jane — I found your most recent order and re-sent the receipt to your email on file.",
+      "latencyMs": 1180,
+      "costUsd": 0
+    },
+    {
+      "id": "q5",
+      "message": "My phone number is 415-555-0132, did my order ship yet?",
+      "route": "local",
+      "reason": "LOCAL — detected phone, intent; must stay on-device (no leak to cloud).",
+      "model": "mock-1",
+      "detectedPII": [
+        {
+          "type": "phone",
+          "masked": "***0132"
+        },
+        {
+          "type": "intent",
+          "masked": "my-data"
+        },
+        {
+          "type": "intent",
+          "masked": "my-data"
+        }
+      ],
+      "toolCalls": [
+        "getMyOrders"
+      ],
+      "response": "Your most recent order is paid and is being prepared for shipment.",
+      "latencyMs": 1240,
+      "costUsd": 0
+    },
+    {
+      "id": "q6",
+      "message": "Is the card 4111 1111 1111 1111 the one saved on my account?",
+      "route": "local",
+      "reason": "LOCAL — detected card, intent; must stay on-device (no leak to cloud).",
+      "model": "mock-1",
+      "detectedPII": [
+        {
+          "type": "card",
+          "masked": "***1111"
+        },
+        {
+          "type": "intent",
+          "masked": "my-data"
+        }
+      ],
+      "toolCalls": [
+        "getMyProfile"
+      ],
+      "response": "For your security I don't display saved card numbers, but I can confirm your profile is set up.",
+      "latencyMs": 1310,
+      "costUsd": 0
+    },
+    {
+      "id": "q7",
+      "message": "Where is my order?",
+      "route": "local",
+      "reason": "LOCAL — detected intent; must stay on-device (no leak to cloud).",
+      "model": "mock-1",
+      "detectedPII": [
+        {
+          "type": "intent",
+          "masked": "my-data"
+        },
+        {
+          "type": "intent",
+          "masked": "order-status"
+        }
+      ],
+      "toolCalls": [
+        "getMyOrders"
+      ],
+      "response": "Your latest order is paid and not yet delivered. I'll keep an eye on it for you.",
+      "latencyMs": 1090,
+      "costUsd": 0
+    },
+    {
+      "id": "q8",
+      "message": "What's the email address on my profile?",
+      "route": "local",
+      "reason": "LOCAL — detected intent; must stay on-device (no leak to cloud).",
+      "model": "mock-1",
+      "detectedPII": [
+        {
+          "type": "intent",
+          "masked": "my-data"
+        }
+      ],
+      "toolCalls": [
+        "getMyProfile"
+      ],
+      "response": "The email on your profile is the one you used to sign in. Want me to update it?",
+      "latencyMs": 1150,
+      "costUsd": 0
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "localCount": 5,
+    "cloudCount": 3,
+    "actualCostUsd": 0.000423,
+    "baselineCloudCostUsd": 0.000626,
+    "savedUsd": 0.000203
+  }
+}

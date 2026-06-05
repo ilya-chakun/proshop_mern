@@ -1,0 +1,79 @@
+{
+  "name": "ProShop Privacy Router (mirror of backend/assistant/router.js)",
+  "_comment": "STRETCH (PLAN T8.3). Visual mirror of the code router: a webhook receives {message}, a Function node runs the SAME regex/intent PII scan as backend/assistant/pii.js, then an IF node forks LOCAL (PII/intent present) vs CLOUD (clean). The application's source of truth is the code in router/router.js + router/pii.js; this JSON exists only to make the decision visible in n8n form.",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "assistant-route",
+        "responseMode": "lastNode"
+      },
+      "name": "Webhook (chat turn)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Mirror of backend/assistant/pii.js detectPII() — CPU-only, no GPU.\nconst text = String($json.message || '');\nconst EMAIL_RE = /\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b/g;\nconst PHONE_RE = /(?:\\+\\d{1,3}[\\s.-]?)?\\(?\\d{3}\\)?[\\s.-]\\d{3}[\\s.-]\\d{4}\\b/g;\nconst CARD_RE = /\\b(?:\\d[ -]?){13,19}\\b/g;\nconst INTENT_RE = /\\bmy\\s+(order|orders|receipt|profile|account|address|email|phone|card|payment)\\b|\\bwhere\\s+is\\s+my\\b|\\b(track|cancel|return|resend)\\s+my\\b/gi;\nfunction luhn(s){const d=String(s).replace(/\\D/g,'');if(d.length<13||d.length>19)return false;let sum=0,alt=false;for(let i=d.length-1;i>=0;i--){let n=+d[i];if(alt){n*=2;if(n>9)n-=9;}sum+=n;alt=!alt;}return sum%10===0;}\nconst types = [];\nif (EMAIL_RE.test(text)) types.push('email');\nif (PHONE_RE.test(text)) types.push('phone');\nfor (const m of text.matchAll(CARD_RE)) { if (luhn(m[0])) { types.push('card'); break; } }\nif (INTENT_RE.test(text)) types.push('intent');\nconst hasPII = types.length > 0;\nreturn [{ json: { message: text, hasPII, types, target: hasPII ? 'local' : 'cloud', reason: hasPII ? ('LOCAL — detected ' + types.join(', ') + '; must stay on-device (no leak to cloud).') : 'CLOUD — no PII and no private-data intent; public catalog question.' } }];"
+      },
+      "name": "Detect PII / intent",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.hasPII }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF has PII?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:11434/v1/chat/completions",
+        "options": {}
+      },
+      "name": "LOCAL model (Ollama qwen3:8b-q6_K)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [960, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "options": {}
+      },
+      "name": "CLOUD model (OpenRouter)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [960, 400]
+    }
+  ],
+  "connections": {
+    "Webhook (chat turn)": {
+      "main": [[{ "node": "Detect PII / intent", "type": "main", "index": 0 }]]
+    },
+    "Detect PII / intent": {
+      "main": [[{ "node": "IF has PII?", "type": "main", "index": 0 }]]
+    },
+    "IF has PII?": {
+      "main": [
+        [{ "node": "LOCAL model (Ollama qwen3:8b-q6_K)", "type": "main", "index": 0 }],
+        [{ "node": "CLOUD model (OpenRouter)", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "tags": ["proshop", "privacy-router", "m7-mirror"]
+}
