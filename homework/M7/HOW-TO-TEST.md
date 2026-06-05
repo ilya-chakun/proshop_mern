@@ -11,6 +11,11 @@ block is covered**. Each section maps to a graded item in
 > Exit `0` = all 7 automated stages (A–G) green. Exit `1` = a stage failed,
 > exit `2` = a `[LIVE]` stage is pending. Read the printed stage banner for the
 > exact reason.
+>
+> **Fully local — no cloud key needed.** Everything in this guide (including the
+> `[LIVE]` runs in §9) runs on a **local** Ollama model. No rubric point requires a
+> real cloud API call; without `OPENROUTER_API_KEY`, cloud-routed turns run on the
+> local model labelled `cloud`, so you can verify the entire homework 100% on-device.
 
 ---
 
@@ -44,7 +49,8 @@ cat homework/M7/0-deploy.md
 
 **Manual live check (requires Ollama running):**
 ```bash
-ollama serve &                       # start local endpoint
+# Ollama.app (cask) already serves on :11434; or start the CLI daemon:
+ollama serve &                       # start local endpoint (skip if app is running)
 ollama pull qwen3:8b-q8_0           # EXPLICIT non-default quant (Q4 default breaks tools)
 # confirm OpenAI-compatible endpoint answers:
 curl http://localhost:11434/v1/chat/completions \
@@ -52,7 +58,8 @@ curl http://localhost:11434/v1/chat/completions \
   -d '{"model":"qwen3:8b-q8_0","messages":[{"role":"user","content":"hi"}]}'
 ```
 ✅ Pass = `0-deploy.md` has all 5 fields **and** a captured real request/response
-transcript (not the "PENDING LIVE RUN" placeholder).
+transcript (not the "PENDING LIVE RUN" placeholder). *This is already done — the
+file holds a verbatim real call showing `finish_reason:tool_calls` + token usage.*
 
 ---
 
@@ -156,6 +163,15 @@ cat homework/M7/dz2/writeup-dz2.md           # OWASP LLM01/LLM06 + trifecta anal
 This is also wired as **stage G** of `npm run m7:verify` (asserts
 `before.leaks > 0` and `after.leaks === 0`).
 
+> **Structural vs live injection.** `attack.mjs` uses a deterministic
+> `MockProvider` that *always* obeys the injection, so the "before" build leaks
+> **2/2** every run — a stable, reproducible proof of the vulnerability and the
+> fix. The real-model run (§9, `attack-live.mjs` → `before-live.json`) is
+> *probabilistic*: a real LLM may refuse some attacks. Our captured live run leaked
+> **1/2** (direct attack leaked `jane@example.com`; the indirect/poisoned-review
+> attack was declined) — which is exactly *why* the durable defense is the
+> deterministic, server-side **scoped-tool** layer, not prompt hardening.
+
 ✅ Pass = vulnerable leaks, secure refuses/scopes, writeup maps the analysis.
 
 ---
@@ -185,6 +201,44 @@ Stages: **A** fixtures · **B** backend jest+supertest · **C** memory-Mongo see
 
 ---
 
+## 9. LIVE verification — real local model (`[LIVE]`, already captured)
+
+These reproduce the `[LIVE]` artifacts on a real model. **Local only** — Ollama
+must be up (`qwen3:8b-q8_0`); **no OpenRouter key required** (cloud-routed turns
+run on the local model labelled `cloud`). Each run is slow (a real LLM); the
+runners default to a 240 s per-call timeout.
+
+```bash
+# prerequisite: Ollama serving on :11434 with the model pulled
+ollama pull qwen3:8b-q8_0
+
+# 9a. Live demo — all 8 frozen queries through the REAL model
+node homework/M7/demo/run-demo-live.mjs
+cat homework/M7/demo/transcript-live.json        # 5 local / 3 cloud, real tool calls + usage
+cat homework/M7/demo/chatlogs-live-dump.json     # genuine ChatLog rows (mode:'live'), PII masked
+
+# 9b. Live prompt-injection — vulnerable build, real model
+node homework/M7/dz2/attack-live.mjs
+cat homework/M7/dz2/before-live.json             # real-model leak log (observed 1/2)
+```
+
+**What to expect (matches the committed artifacts):**
+- `transcript-live.json`: 8 turns, **5 local / 3 cloud**, real `getProducts` /
+  `getMyOrders` / `getMyProfile` tool calls, real token usage; every local turn
+  has its PII **masked**.
+- `before-live.json`: `security:'vuln'`, **`leaks: 1`** — the direct attack
+  exfiltrates `jane@example.com`; the indirect one is declined (probabilistic, see §6).
+
+✅ Pass = the live runs complete and the JSON shows real model output (`mode:'live'`,
+real `usage` token counts), PII masked on local turns, and ≥1 leak in the vuln build.
+
+> **Tuning (optional):** override defaults via env, e.g.
+> `LOCAL_MODEL_NAME`, `LOCAL_MODEL_BASE_URL`, `LOCAL_MODEL_TIMEOUT_MS`,
+> `MONGOMS_VERSION`. To exercise a **real cloud** leg instead of the local
+> fallback, set `OPENROUTER_API_KEY` (one-line swap; not needed for any points).
+
+---
+
 ## Coverage map (rubric → where it's proven)
 
 | Rubric block | Pts | Proven by |
@@ -193,10 +247,11 @@ Stages: **A** fixtures · **B** backend jest+supertest · **C** memory-Mongo see
 | Роутер + dashboard tracking | 5 | §2, §4, `m7:verify` D/E |
 | Assistant with DB | 2 | §3, `m7:verify` B |
 | Разбор DZ1 | 1 | §5 `writeup-dz1.md` |
-| DZ2 Attack | +1.5 | §6 `attack.mjs` before-log |
+| DZ2 Attack | +1.5 | §6 `attack.mjs` before-log + §9 live `before-live.json` |
 | DZ2 Defense | +1.5 | §6 scoped tools after-log |
 | DZ2 Разбор | +1 | §6 `writeup-dz2.md` |
 
-> **`[LIVE]`-gated items** (need a running real model, can't be faked):
-> Часть 0 real call log (`0-deploy.md`), `demo/transcript-live.json`,
-> real dashboard rows, `dz2/before-live.json`. See `PLAN.md` for the exact tasks.
+> **`[LIVE]`-gated items** (need a running real model — **all already captured**,
+> re-verify via §9): Часть 0 real call log (`0-deploy.md`),
+> `demo/transcript-live.json` + `demo/chatlogs-live-dump.json`, real dashboard rows,
+> `dz2/before-live.json`. All run on the **local** model; see `PLAN.md` for the exact tasks.
