@@ -254,8 +254,8 @@ prompt. Two attack vectors, two honesty levels:
   - *Accept:* table-driven jest ≥20 cases (PII vs clean) all correct; names documented as regex-miss.
 - [x] **T2.2** `[AUTO]` `backend/assistant/router.js`: `route(message)` → `{target, reason, matches}`. · S ✓ router.test.js: all 8 demo msgs → expectedRoute; m7:verify stage D green.
   - *Accept:* every `demo/queries.json` message maps to its `expectedRoute` with a human-readable reason.
-- [ ] **T2.3** `[STRETCH]` `ai/pii-presidio/` service + `PRESIDIO_URL` hookup for **name** catching. · M
-  - *Accept:* with service up, "where is John Smith's order" → `local` via NAME entity; without, falls back to regex cleanly.
+- [x] **T2.3** `[STRETCH]` ~~`ai/pii-presidio/` service + `PRESIDIO_URL` hookup for **name** catching.~~ · M
+  - **DECISION (by design): NOT built.** Earns 0 rubric points (Router block is satisfied by M2+M4) and would add a Python/spaCy microservice against the fork's "minimal changes" rule (§10/R11). Names stay a *documented regex miss* (`pii.js` header + `pii.test.js` "bare name is a documented MISS"); `PRESIDIO_URL` remains a reserved future plug-in point. Detector stays regex-only, identical in mock/live.
 - [x] **T2.4** `[AUTO]` Prove "router needs no GPU": detector runs < 5 ms/msg on CPU; record timing. · S ✓ measured 0.0083 ms/msg over 2000 iters (router.test.js).
 
 ### M3 — Assistant with DB tools · rubric 2 pts (**LIVE-gated for real tool-calling**)

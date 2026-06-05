@@ -7,9 +7,12 @@
  *   detectPII(message) -> Array<{ type, value, masked }>
  *   type ∈ 'email' | 'phone' | 'card' | 'postal' | 'intent'
  *
- * NAMES are intentionally NOT caught here (a documented regex miss). The
- * optional Presidio service (Stretch, T2.3) covers names over HTTP when
- * PRESIDIO_URL is set; the route logic is unchanged either way.
+ * NAMES are intentionally NOT caught here (a documented regex miss). A Presidio
+ * name-detection service (Stretch, T2.3) was deliberately NOT built: it earns no
+ * rubric points and would add a Python/spaCy microservice, against this fork's
+ * "minimal changes / no large additions" rule. PRESIDIO_URL stays a reserved,
+ * future plug-in point only — the detector is the single source of truth, so the
+ * route logic remains regex-only and behaves identically in mock and live modes.
  */
 
 /** Mask a matched value so logs never re-leak what routing just protected. */
