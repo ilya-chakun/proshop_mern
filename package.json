@@ -11,6 +11,9 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "data:import": "node backend/seeder",
     "data:destroy": "node backend/seeder -d",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --config jest.config.json",
+    "m7:verify": "node scripts/m7-verify.mjs",
+    "m7:demo": "node homework/M7/demo/run-demo.mjs && node homework/M7/demo/screenshot-dashboard.mjs",
     "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install --prefix frontend && npm run build --prefix frontend"
   },
   "author": "Brad Traversy",
@@ -28,7 +31,11 @@
   },
   "devDependencies": {
     "concurrently": "^5.3.0",
+    "cross-env": "^7.0.3",
+    "jest": "^29.7.0",
+    "mongodb-memory-server": "^9.5.0",
     "nodemon": "^2.0.4",
-    "playwright": "^1.60.0"
+    "playwright": "^1.60.0",
+    "supertest": "^6.3.4"
   }
 }

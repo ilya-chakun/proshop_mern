@@ -11,10 +11,10 @@ import userRoutes from './routes/userRoutes.js'
 import orderRoutes from './routes/orderRoutes.js'
 import uploadRoutes from './routes/uploadRoutes.js'
 import featureFlagsRoutes from './routes/featureFlagsRoutes.js'
+import assistantRoutes from './routes/assistantRoutes.js'
+import chatLogRoutes from './routes/chatLogRoutes.js'
 
 dotenv.config()
-
-connectDB()
 
 const app = express()
 
@@ -29,6 +29,8 @@ app.use('/api/users', userRoutes)
 app.use('/api/orders', orderRoutes)
 app.use('/api/upload', uploadRoutes)
 app.use('/api/feature-flags', featureFlagsRoutes)
+app.use('/api/assistant', assistantRoutes)
+app.use('/api/chatlogs', chatLogRoutes)
 
 app.get('/api/config/paypal', (req, res) =>
   res.send(process.env.PAYPAL_CLIENT_ID)
@@ -52,11 +54,21 @@ if (process.env.NODE_ENV === 'production') {
 app.use(notFound)
 app.use(errorHandler)
 
-const PORT = process.env.PORT || 5000
+export default app
 
-app.listen(
-  PORT,
-  console.log(
-    `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold
+// Import-time side-effects are gated so `import app` under tests neither connects
+// to Mongo nor binds a port (M7 T0.4). Direct runs (`npm run dev` / `start`) are
+// non-test, so they connect + listen exactly as before.
+if (process.env.NODE_ENV !== 'test') {
+  connectDB()
+
+  const PORT = process.env.PORT || 5000
+
+  app.listen(
+    PORT,
+    console.log(
+      `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow
+        .bold
+    )
   )
-)
+}

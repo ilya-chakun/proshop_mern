@@ -2,7 +2,7 @@
   "name": "proshop_mern",
   "type": "e-commerce monorepo (MERN stack)",
   "description": "Legacy MERN e-commerce app (ProShop) with AI layer — MCP servers for feature flags and documentation search, RAG query engine with Qdrant.",
-  "last_updated": "2026-05-25T15:00:23Z",
+  "last_updated": "2026-06-05T21:22:28Z",
   "tech_stack": {
     "backend": "Node.js + Express 4 (ES Modules), Mongoose 5",
     "frontend": "React 16 + Redux 4 + React-Bootstrap + React Router 5",
@@ -122,10 +122,27 @@
   ],
   "filesystem_tree": {
     "backend/": {
+      "assistant/": {
+        "providers/": {
+          "base.js": "base.js",
+          "cloud.js": "cloud.js",
+          "index.js": "index.js",
+          "mock.js": "mock.js",
+          "ollama.js": "ollama.js",
+          "openaiCompatible.js": "openaiCompatible.js"
+        },
+        "agent.js": "agent.js",
+        "pii.js": "pii.js",
+        "pricing.js": "pricing.js",
+        "router.js": "router.js",
+        "tools.js": "tools.js"
+      },
       "config/": {
         "db.js": "db.js"
       },
       "controllers/": {
+        "assistantController.js": "assistantController.js",
+        "chatLogController.js": "chatLogController.js",
         "orderController.js": "orderController.js",
         "productController.js": "productController.js",
         "userController.js": "userController.js"
@@ -139,16 +156,31 @@
         "errorMiddleware.js": "errorMiddleware.js"
       },
       "models/": {
+        "chatLogModel.js": "chatLogModel.js",
         "orderModel.js": "orderModel.js",
         "productModel.js": "productModel.js",
         "userModel.js": "userModel.js"
       },
       "routes/": {
+        "assistantRoutes.js": "assistantRoutes.js",
+        "chatLogRoutes.js": "chatLogRoutes.js",
         "featureFlagsRoutes.js": "featureFlagsRoutes.js",
         "orderRoutes.js": "orderRoutes.js",
         "productRoutes.js": "productRoutes.js",
         "uploadRoutes.js": "uploadRoutes.js",
         "userRoutes.js": "userRoutes.js"
+      },
+      "tests/": {
+        "README.md": "README.md",
+        "assistant.test.js": "assistant.test.js",
+        "chatlog.test.js": "chatlog.test.js",
+        "legacy-stack.test.js": "legacy-stack.test.js",
+        "no-side-effects.test.js": "no-side-effects.test.js",
+        "pii.test.js": "pii.test.js",
+        "providers.test.js": "providers.test.js",
+        "router.test.js": "router.test.js",
+        "smoke.test.js": "smoke.test.js",
+        "tools.test.js": "tools.test.js"
       },
       "utils/": {
         "generateToken.js": "generateToken.js"
@@ -167,6 +199,8 @@
         },
         "components/": {
           "AutoPilotControls.js": "AutoPilotControls.js",
+          "ChatWidget.js": "ChatWidget.js",
+          "ChatWidget.test.js": "ChatWidget.test.js",
           "CheckoutSteps.js": "CheckoutSteps.js",
           "Footer.js": "Footer.js",
           "FormContainer.js": "FormContainer.js",
@@ -193,6 +227,7 @@
           "userReducers.js": "userReducers.js"
         },
         "screens/": {
+          "AssistantLogsScreen.js": "AssistantLogsScreen.js",
           "CartScreen.js": "CartScreen.js",
           "FeatureDashboardScreen.js": "FeatureDashboardScreen.js",
           "HomeScreen.js": "HomeScreen.js",
@@ -215,6 +250,7 @@
         "index.css": "index.css",
         "index.js": "index.js",
         "serviceWorker.js": "serviceWorker.js",
+        "setupTests.js": "setupTests.js",
         "store.js": "store.js"
       }
     },
@@ -222,6 +258,12 @@
       "mcp-feature-flags/": {
         "__pycache__/": {
           "server.cpython-313.pyc": "server.cpython-313.pyc"
+        },
+        "__tests__/": {
+          "__pycache__/": {
+            "test_server.cpython-313-pytest-9.0.3.pyc": "test_server.cpython-313-pytest-9.0.3.pyc"
+          },
+          "test_server.py": "test_server.py"
         },
         "server.py": "server.py"
       },
@@ -238,6 +280,12 @@
           "evaluate_optional.cpython-313.pyc": "evaluate_optional.cpython-313.pyc",
           "ingest.cpython-313.pyc": "ingest.cpython-313.pyc",
           "query.cpython-313.pyc": "query.cpython-313.pyc"
+        },
+        "tests/": {
+          "__pycache__/": {
+            "test_query.cpython-313-pytest-9.0.3.pyc": "test_query.cpython-313-pytest-9.0.3.pyc"
+          },
+          "test_query.py": "test_query.py"
         },
         "__init__.py": "__init__.py",
         "config.py": "config.py",

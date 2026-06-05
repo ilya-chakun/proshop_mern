@@ -1,0 +1,265 @@
+{
+  "generatedAt": "2026-06-05T18:26:09.989Z",
+  "mode": "mock",
+  "count": 8,
+  "logs": [
+    {
+      "_id": "6a2314c12f3a0f15f58fedf4",
+      "model": "mock-1",
+      "response": "Yes — the Airpods Wireless Bluetooth Headphones are $89.99 and we have 3 in stock.",
+      "latencyMs": 520,
+      "costUsd": 0.000146,
+      "promptTokens": 211,
+      "completionTokens": 27,
+      "mode": "mock",
+      "user": "6a2314c12f3a0f15f58fedec",
+      "userName": "John Doe",
+      "message": "Do you have the Airpods Wireless Bluetooth Headphones in stock?",
+      "detectedPII": [],
+      "route": "cloud",
+      "reason": "CLOUD — no PII and no private-data intent; public catalog question.",
+      "toolCalls": [
+        {
+          "name": "getProducts",
+          "args": {
+            "query": "Airpods"
+          }
+        }
+      ],
+      "createdAt": "2026-06-05T18:26:09.916Z",
+      "updatedAt": "2026-06-05T18:26:09.916Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a2314c12f3a0f15f58fedf5",
+      "model": "mock-1",
+      "response": "The Sony Playstation 4 Pro White Version is $399.99, with 10 in stock.",
+      "latencyMs": 480,
+      "costUsd": 0.000139,
+      "promptTokens": 203,
+      "completionTokens": 25,
+      "mode": "mock",
+      "user": "6a2314c12f3a0f15f58fedec",
+      "userName": "John Doe",
+      "message": "What's the price of the Sony Playstation 4 Pro?",
+      "detectedPII": [],
+      "route": "cloud",
+      "reason": "CLOUD — no PII and no private-data intent; public catalog question.",
+      "toolCalls": [
+        {
+          "name": "getProducts",
+          "args": {
+            "query": "Playstation"
+          }
+        }
+      ],
+      "createdAt": "2026-06-05T18:26:09.960Z",
+      "updatedAt": "2026-06-05T18:26:09.960Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a2314c12f3a0f15f58fedf6",
+      "model": "mock-1",
+      "response": "The Logitech G-Series Gaming Mouse ($49.99) has six programmable buttons and LIGHTSYNC lighting. 7 in stock.",
+      "latencyMs": 610,
+      "costUsd": 0.000138,
+      "promptTokens": 171,
+      "completionTokens": 35,
+      "mode": "mock",
+      "user": "6a2314c12f3a0f15f58fedec",
+      "userName": "John Doe",
+      "message": "Tell me about the Logitech gaming mouse.",
+      "detectedPII": [],
+      "route": "cloud",
+      "reason": "CLOUD — no PII and no private-data intent; public catalog question.",
+      "toolCalls": [
+        {
+          "name": "getProducts",
+          "args": {
+            "query": "Logitech mouse"
+          }
+        }
+      ],
+      "createdAt": "2026-06-05T18:26:09.963Z",
+      "updatedAt": "2026-06-05T18:26:09.963Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a2314c12f3a0f15f58fedf7",
+      "model": "mock-1",
+      "response": "Hi Jane — I found your most recent order and re-sent the receipt to your email on file.",
+      "latencyMs": 1180,
+      "costUsd": 0,
+      "promptTokens": 181,
+      "completionTokens": 24,
+      "mode": "mock",
+      "user": "6a2314c12f3a0f15f58fedec",
+      "userName": "John Doe",
+      "message": "My email is jane@example.com — can you resend my last receipt?",
+      "detectedPII": [
+        {
+          "type": "email",
+          "masked": "j***@example.com"
+        },
+        {
+          "type": "intent",
+          "masked": "my-data"
+        },
+        {
+          "type": "intent",
+          "masked": "order-action"
+        }
+      ],
+      "route": "local",
+      "reason": "LOCAL — detected email, intent; must stay on-device (no leak to cloud).",
+      "toolCalls": [
+        {
+          "name": "getMyOrders"
+        }
+      ],
+      "createdAt": "2026-06-05T18:26:09.968Z",
+      "updatedAt": "2026-06-05T18:26:09.968Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a2314c12f3a0f15f58fedf8",
+      "model": "mock-1",
+      "response": "Your most recent order is paid and is being prepared for shipment.",
+      "latencyMs": 1240,
+      "costUsd": 0,
+      "promptTokens": 177,
+      "completionTokens": 19,
+      "mode": "mock",
+      "user": "6a2314c12f3a0f15f58fedec",
+      "userName": "John Doe",
+      "message": "My phone number is 415-555-0132, did my order ship yet?",
+      "detectedPII": [
+        {
+          "type": "phone",
+          "masked": "***0132"
+        },
+        {
+          "type": "intent",
+          "masked": "my-data"
+        },
+        {
+          "type": "intent",
+          "masked": "my-data"
+        }
+      ],
+      "route": "local",
+      "reason": "LOCAL — detected phone, intent; must stay on-device (no leak to cloud).",
+      "toolCalls": [
+        {
+          "name": "getMyOrders"
+        }
+      ],
+      "createdAt": "2026-06-05T18:26:09.971Z",
+      "updatedAt": "2026-06-05T18:26:09.971Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a2314c12f3a0f15f58fedf9",
+      "model": "mock-1",
+      "response": "For your security I don't display saved card numbers, but I can confirm your profile is set up.",
+      "latencyMs": 1310,
+      "costUsd": 0,
+      "promptTokens": 196,
+      "completionTokens": 26,
+      "mode": "mock",
+      "user": "6a2314c12f3a0f15f58fedec",
+      "userName": "John Doe",
+      "message": "Is the card 4111 1111 1111 1111 the one saved on my account?",
+      "detectedPII": [
+        {
+          "type": "card",
+          "masked": "***1111"
+        },
+        {
+          "type": "intent",
+          "masked": "my-data"
+        }
+      ],
+      "route": "local",
+      "reason": "LOCAL — detected card, intent; must stay on-device (no leak to cloud).",
+      "toolCalls": [
+        {
+          "name": "getMyProfile"
+        }
+      ],
+      "createdAt": "2026-06-05T18:26:09.976Z",
+      "updatedAt": "2026-06-05T18:26:09.976Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a2314c12f3a0f15f58fedfa",
+      "model": "mock-1",
+      "response": "Your latest order is paid and not yet delivered. I'll keep an eye on it for you.",
+      "latencyMs": 1090,
+      "costUsd": 0,
+      "promptTokens": 159,
+      "completionTokens": 22,
+      "mode": "mock",
+      "user": "6a2314c12f3a0f15f58fedec",
+      "userName": "John Doe",
+      "message": "Where is my order?",
+      "detectedPII": [
+        {
+          "type": "intent",
+          "masked": "my-data"
+        },
+        {
+          "type": "intent",
+          "masked": "order-status"
+        }
+      ],
+      "route": "local",
+      "reason": "LOCAL — detected intent; must stay on-device (no leak to cloud).",
+      "toolCalls": [
+        {
+          "name": "getMyOrders"
+        }
+      ],
+      "createdAt": "2026-06-05T18:26:09.979Z",
+      "updatedAt": "2026-06-05T18:26:09.979Z",
+      "__v": 0
+    },
+    {
+      "_id": "6a2314c12f3a0f15f58fedfb",
+      "model": "mock-1",
+      "response": "The email on your profile is the one you used to sign in. Want me to update it?",
+      "latencyMs": 1150,
+      "costUsd": 0,
+      "promptTokens": 184,
+      "completionTokens": 22,
+      "mode": "mock",
+      "user": "6a2314c12f3a0f15f58fedec",
+      "userName": "John Doe",
+      "message": "What's the email address on my profile?",
+      "detectedPII": [
+        {
+          "type": "intent",
+          "masked": "my-data"
+        }
+      ],
+      "route": "local",
+      "reason": "LOCAL — detected intent; must stay on-device (no leak to cloud).",
+      "toolCalls": [
+        {
+          "name": "getMyProfile"
+        }
+      ],
+      "createdAt": "2026-06-05T18:26:09.982Z",
+      "updatedAt": "2026-06-05T18:26:09.982Z",
+      "__v": 0
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "localCount": 5,
+    "cloudCount": 3,
+    "actualCostUsd": 0.000423,
+    "baselineCloudCostUsd": 0.000626,
+    "savedUsd": 0.000203
+  }
+}

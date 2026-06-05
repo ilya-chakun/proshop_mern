@@ -11,6 +11,10 @@ const connectDB = async () => {
     console.log(`MongoDB Connected: ${conn.connection.host}`.cyan.underline)
   } catch (error) {
     console.error(`Error: ${error.message}`.red.underline.bold)
+    // Under tests, never kill the jest worker — surface the error instead.
+    if (process.env.NODE_ENV === 'test') {
+      throw error
+    }
     process.exit(1)
   }
 }

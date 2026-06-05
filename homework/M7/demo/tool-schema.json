@@ -1,0 +1,46 @@
+{
+  "$comment": "FROZEN tool JSON-schema (M7 T0.5), OpenAI function-calling shape. SECURITY INVARIANT: getMyOrders and getMyProfile expose NO parameters to the model. The trusted user id (TRUSTED_UID) is injected by the caller from req.user._id (JWT), never passed as an LLM-controlled argument. This removes the 'widen the scope' leg of the lethal trifecta (DZ2). getProducts is the only public, unscoped catalog tool.",
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "getProducts",
+        "description": "Search the public product catalog by free-text query (name/brand/category). Returns name, price, brand, category, and stock. Public data — safe for the cloud model.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "Free-text search over product name/brand/category. Optional; omit to list all products."
+            }
+          },
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "getMyOrders",
+        "description": "Return the CURRENT logged-in user's own orders. Scoped automatically to the session user; takes no arguments. Use for 'my order / where is my order / my receipts' questions.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "getMyProfile",
+        "description": "Return the CURRENT logged-in user's own profile (name, email, isAdmin). Scoped automatically to the session user; takes no arguments. Use for 'my profile / my email on file' questions.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      }
+    }
+  ]
+}
