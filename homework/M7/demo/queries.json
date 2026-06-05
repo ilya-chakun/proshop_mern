@@ -1,0 +1,77 @@
+{
+  "$comment": "FROZEN canonical fixtures (M7 T0.5). SINGLE SOURCE OF TRUTH: MockProvider reads its scripted answers from here AND router tests assert `expectedRoute` against the same entries (no drift). DZ1-only — DZ2 has its own dz2/fixtures.json. Routing rule: a message goes to the LOCAL model when it contains PII (email/phone/card+Luhn/postal) OR a private-data intent (the answer will pull the user's own orders/profile, whose tool output must not leak to cloud). Clean public-catalog questions go to CLOUD. PII tokens chosen UNAMBIGUOUS so expectedRoute is stable when the real regex lands (T2.2).",
+  "queries": [
+    {
+      "id": "q1",
+      "message": "Do you have the Airpods Wireless Bluetooth Headphones in stock?",
+      "expectedRoute": "cloud",
+      "reason": "Clean public-catalog question, no PII and no private-data intent.",
+      "mockToolCalls": [{ "name": "getProducts", "args": { "query": "Airpods" } }],
+      "mockAnswer": "Yes — the Airpods Wireless Bluetooth Headphones are $89.99 and we have 3 in stock.",
+      "mockLatencyMs": 520
+    },
+    {
+      "id": "q2",
+      "message": "What's the price of the Sony Playstation 4 Pro?",
+      "expectedRoute": "cloud",
+      "reason": "Clean public-catalog question, no PII.",
+      "mockToolCalls": [{ "name": "getProducts", "args": { "query": "Playstation" } }],
+      "mockAnswer": "The Sony Playstation 4 Pro White Version is $399.99, with 10 in stock.",
+      "mockLatencyMs": 480
+    },
+    {
+      "id": "q3",
+      "message": "Tell me about the Logitech gaming mouse.",
+      "expectedRoute": "cloud",
+      "reason": "Clean public-catalog question, no PII.",
+      "mockToolCalls": [{ "name": "getProducts", "args": { "query": "Logitech mouse" } }],
+      "mockAnswer": "The Logitech G-Series Gaming Mouse ($49.99) has six programmable buttons and LIGHTSYNC lighting. 7 in stock.",
+      "mockLatencyMs": 610
+    },
+    {
+      "id": "q4",
+      "message": "My email is jane@example.com — can you resend my last receipt?",
+      "expectedRoute": "local",
+      "reason": "Contains an email address (PII) → must stay on the local model.",
+      "mockToolCalls": [{ "name": "getMyOrders", "args": {} }],
+      "mockAnswer": "Hi Jane — I found your most recent order and re-sent the receipt to your email on file.",
+      "mockLatencyMs": 1180
+    },
+    {
+      "id": "q5",
+      "message": "My phone number is 415-555-0132, did my order ship yet?",
+      "expectedRoute": "local",
+      "reason": "Contains a phone number (PII) plus a private-order intent → local.",
+      "mockToolCalls": [{ "name": "getMyOrders", "args": {} }],
+      "mockAnswer": "Your most recent order is paid and is being prepared for shipment.",
+      "mockLatencyMs": 1240
+    },
+    {
+      "id": "q6",
+      "message": "Is the card 4111 1111 1111 1111 the one saved on my account?",
+      "expectedRoute": "local",
+      "reason": "Contains a Luhn-valid credit-card number (PII) → local.",
+      "mockToolCalls": [{ "name": "getMyProfile", "args": {} }],
+      "mockAnswer": "For your security I don't display saved card numbers, but I can confirm your profile is set up.",
+      "mockLatencyMs": 1310
+    },
+    {
+      "id": "q7",
+      "message": "Where is my order?",
+      "expectedRoute": "local",
+      "reason": "Private-data intent: answering requires the user's own orders; tool output must not leak to cloud.",
+      "mockToolCalls": [{ "name": "getMyOrders", "args": {} }],
+      "mockAnswer": "Your latest order is paid and not yet delivered. I'll keep an eye on it for you.",
+      "mockLatencyMs": 1090
+    },
+    {
+      "id": "q8",
+      "message": "What's the email address on my profile?",
+      "expectedRoute": "local",
+      "reason": "Private-data intent: pulls the user's own profile; PII in the tool output must stay local.",
+      "mockToolCalls": [{ "name": "getMyProfile", "args": {} }],
+      "mockAnswer": "The email on your profile is the one you used to sign in. Want me to update it?",
+      "mockLatencyMs": 1150
+    }
+  ]
+}
